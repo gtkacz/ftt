@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 	'rest_framework',
 	'rest_framework_simplejwt',
 	'corsheaders',
+	'drf_spectacular',
 	'core',
 	'draft',
 	'auction',
@@ -150,7 +151,36 @@ REST_FRAMEWORK = {
 		'rest_framework.permissions.AllowAny',
 	],
 	'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+	'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 	'PAGE_SIZE': 20,
+}
+
+SPECTACULAR_SETTINGS = {
+	'TITLE': 'Fantasy Trash Talk API',
+	'DESCRIPTION': 'A comprehensive REST API for managing dynasty-style fantasy basketball leagues',
+	'VERSION': '1.0.0',
+	'SERVE_INCLUDE_SCHEMA': False,
+	'COMPONENT_SPLIT_REQUEST': True,
+	'SCHEMA_PATH_PREFIX': '/api/',
+	'TAGS': [
+		{
+			'name': 'Authentication',
+			'description': 'User registration and authentication endpoints',
+		},
+		{'name': 'Users', 'description': 'User management operations'},
+		{'name': 'Teams', 'description': 'Team management and analytics'},
+		{'name': 'Players', 'description': 'Player roster management'},
+		{'name': 'Draft Capital', 'description': 'Draft pick assets and trading'},
+		{'name': 'Drafts', 'description': 'Draft events and live drafting'},
+		{'name': 'Draft Positions', 'description': 'Draft order and pick management'},
+	],
+	'SWAGGER_UI_SETTINGS': {
+		'deepLinking': True,
+		'persistAuthorization': True,
+		'displayOperationId': True,
+	},
+	'PREPROCESSING_HOOKS': [],
+	'POSTPROCESSING_HOOKS': [],
 }
 
 SIMPLE_JWT = {
