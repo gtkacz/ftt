@@ -14,6 +14,7 @@ from datetime import timedelta
 from os import environ, path
 from pathlib import Path
 
+from box import Box
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,6 +48,8 @@ INSTALLED_APPS = [
 	'rest_framework_simplejwt',
 	'corsheaders',
 	'drf_spectacular',
+	'django_extensions',
+	'puml_generator',
 	'core',
 	'draft',
 	'auction',
@@ -121,7 +124,7 @@ LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'America/Sao_Paulo'
 
-USE_I18N = False
+USE_I18N = True
 
 USE_TZ = True
 
@@ -140,15 +143,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.User'
 
-USE_AUTH = environ.get('auth', 'false').lower() == 'true' or DEBUG
 
 REST_FRAMEWORK = {
 	'DEFAULT_AUTHENTICATION_CLASSES': [
 		'rest_framework_simplejwt.authentication.JWTAuthentication',
 	],
 	'DEFAULT_PERMISSION_CLASSES': [
-		# 'rest_framework.permissions.IsAuthenticated' if USE_AUTH else 'rest_framework.permissions.AllowAny',
-		'rest_framework.permissions.AllowAny',
+		'rest_framework.permissions.AllowAny'
+		if DEBUG
+		else 'rest_framework.permissions.IsAuthenticated',
 	],
 	'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
 	'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -189,7 +192,13 @@ SIMPLE_JWT = {
 	'ROTATE_REFRESH_TOKENS': True,
 }
 
-CORS_ALLOWED_ORIGINS = [
-	'http://localhost:3000',
-	'http://127.0.0.1:3000',
-]
+CORS_ALLOWED_ORIGINS = ['https://gtkacz.github.io']
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+LEAGUE_SETTINGS = Box(
+	{
+		'SALARY_CAP': int(environ.get('SALARY_CAP', 130)),
+		'MIN_PLAYER_CAP': int(environ.get('MIN_PLAYER_CAP', 13)),
+		'MAX_PLAYER_CAP': int(environ.get('MAX_PLAYER_CAP', 15)),
+	}
+)

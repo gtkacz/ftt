@@ -16,14 +16,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = User
-		fields = [
-			'username',
-			'email',
-			'first_name',
-			'last_name',
-			'password',
-			'password_confirm',
-		]
+		fields = '__all__'
 		extra_kwargs = {
 			'username': {'help_text': 'Unique username for the user'},
 			'email': {'help_text': 'User email address'},
@@ -48,22 +41,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = [
-			'id',
-			'username',
-			'email',
-			'first_name',
-			'last_name',
-			'is_admin',
-			'date_joined',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'date_joined']
 		extra_kwargs = {
 			'username': {'help_text': 'Unique username for the user'},
 			'email': {'help_text': 'User email address'},
 			'first_name': {'help_text': 'User first name'},
 			'last_name': {'help_text': 'User last name'},
-			'is_admin': {'help_text': 'Whether the user has admin privileges'},
 			'date_joined': {'help_text': 'Date and time when user joined'},
 		}
 
@@ -78,19 +62,19 @@ class TeamSerializer(serializers.ModelSerializer):
 	total_players = serializers.SerializerMethodField(
 		help_text='Number of players currently on the team'
 	)
+	available_salary = serializers.SerializerMethodField(
+		help_text='Available salary cap after accounting for current team salary'
+	)
+	available_players = serializers.SerializerMethodField(
+		help_text='Number of available player slots based on current roster and league settings'
+	)
+	can_bid = serializers.SerializerMethodField(
+		help_text='Whether the team can bid on players based on current roster and salary cap'
+	)
 
 	class Meta:
 		model = Team
-		fields = [
-			'id',
-			'name',
-			'owner',
-			'owner_username',
-			'avatar',
-			'total_salary',
-			'total_players',
-			'created_at',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'created_at', 'total_salary', 'total_players']
 		extra_kwargs = {
 			'name': {'help_text': 'Team name'},
@@ -99,11 +83,20 @@ class TeamSerializer(serializers.ModelSerializer):
 			'created_at': {'help_text': 'Date and time when team was created'},
 		}
 
-	def get_total_salary(self, obj):
+	def get_total_salary(self, obj: Team) -> float:
 		return obj.total_salary()
 
-	def get_total_players(self, obj):
+	def get_total_players(self, obj: Team) -> int:
 		return obj.total_players()
+
+	def get_available_salary(self, obj: Team) -> float:
+		return obj.available_salary()
+
+	def get_available_players(self, obj: Team) -> int:
+		return obj.available_players()
+
+	def get_can_bid(self, obj: Team) -> bool:
+		return obj.can_bid()
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -115,18 +108,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Player
-		fields = [
-			'id',
-			'name',
-			'team',
-			'team_name',
-			'salary',
-			'contract_duration',
-			'primary_position',
-			'secondary_position',
-			'is_rfa',
-			'created_at',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
 		extra_kwargs = {
 			'name': {'help_text': 'Player full name'},

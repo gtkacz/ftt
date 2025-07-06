@@ -5,10 +5,8 @@ from .models import Player, Team, User
 
 
 class UserAdmin(BaseUserAdmin):
-	fieldsets = BaseUserAdmin.fieldsets + (
-		('Additional Info', {'fields': ('is_admin',)}),
-	)
-	list_display = BaseUserAdmin.list_display + ('is_admin',)
+	fieldsets = BaseUserAdmin.fieldsets
+	list_display = BaseUserAdmin.list_display
 
 
 class TeamAdmin(admin.ModelAdmin):

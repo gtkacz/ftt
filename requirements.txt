@@ -12,10 +12,13 @@ django==5.2.4
     # via
     #   -r requirements.in
     #   django-cors-headers
+    #   django-extensions
     #   djangorestframework
     #   djangorestframework-simplejwt
     #   drf-spectacular
 django-cors-headers==4.7.0
+    # via -r requirements.in
+django-extensions==4.1
     # via -r requirements.in
 djangorestframework==3.16.0
     # via
@@ -36,6 +39,8 @@ pillow==11.3.0
     # via -r requirements.in
 pyjwt==2.9.0
     # via djangorestframework-simplejwt
+python-box==7.3.2
+    # via -r requirements.in
 python-dotenv==1.1.1
     # via -r requirements.in
 pyyaml==6.0.2

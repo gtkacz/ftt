@@ -19,17 +19,7 @@ class PickSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Pick
-		fields = [
-			'id',
-			'original_team',
-			'original_team_name',
-			'current_team',
-			'current_team_name',
-			'draft_year',
-			'round_number',
-			'protections',
-			'created_at',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
 		extra_kwargs = {
 			'original_team': {'help_text': 'Team ID that originally owned this pick'},
@@ -57,18 +47,7 @@ class DraftPositionSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = DraftPosition
-		fields = [
-			'id',
-			'team',
-			'team_name',
-			'round_number',
-			'pick_number',
-			'overall_pick',
-			'selected_player',
-			'selected_player_name',
-			'is_pick_made',
-			'pick_made_at',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'pick_made_at']
 		extra_kwargs = {
 			'team': {'help_text': 'Team ID making this pick'},
@@ -95,15 +74,7 @@ class DraftSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Draft
-		fields = [
-			'id',
-			'year',
-			'draftable_players',
-			'draft_positions',
-			'is_completed',
-			'is_snake_draft',
-			'created_at',
-		]
+		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
 		extra_kwargs = {
 			'year': {'help_text': 'Draft year (must be unique)'},

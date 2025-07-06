@@ -5,3 +5,5 @@ djangorestframework-simplejwt
 Pillow
 python-dotenv
 drf-spectacular
+django-extensions
+python-box
