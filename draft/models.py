@@ -36,11 +36,14 @@ class Draft(models.Model):
 		Player, related_name='drafts', blank=True
 	)
 	is_completed = models.BooleanField(default=False)
-	is_snake_draft = models.BooleanField(
-		default=True, help_text='Snake draft reverses order each round'
-	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
+	def current_player_pool(self) -> models.QuerySet:
+		"""Returns the list of players still available for drafting"""
+		return self.draftable_players.filter(
+			is_active=True, contract__isnull=True
+		).order_by('name')
 
 	def __str__(self):
 		return f'{self.year} Draft'

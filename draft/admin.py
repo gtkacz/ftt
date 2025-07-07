@@ -22,7 +22,7 @@ class DraftPositionInline(admin.TabularInline):
 
 
 class DraftAdmin(admin.ModelAdmin):
-	list_display = ['year', 'is_completed', 'is_snake_draft', 'created_at']
+	list_display = ['year', 'is_completed', 'created_at']
 	filter_horizontal = ['draftable_players']
 	inlines = [DraftPositionInline]
 

@@ -79,8 +79,5 @@ class DraftSerializer(serializers.ModelSerializer):
 		extra_kwargs = {
 			'year': {'help_text': 'Draft year (must be unique)'},
 			'is_completed': {'help_text': 'Whether this draft has been completed'},
-			'is_snake_draft': {
-				'help_text': 'Whether this is a snake draft (reverses order each round)'
-			},
 			'created_at': {'help_text': 'Date and time when draft was created'},
 		}

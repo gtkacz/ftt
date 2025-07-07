@@ -70,10 +70,14 @@ class Player(models.Model):
 		Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='players'
 	)
 	salary = models.DecimalField(
-		max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
+		max_digits=10,
+		decimal_places=2,
+		validators=[MinValueValidator(0)],
+		null=True,
+		blank=True,
 	)
 	contract_duration = models.PositiveIntegerField(
-		validators=[MinValueValidator(1), MaxValueValidator(10)]
+		validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True
 	)
 	primary_position = models.CharField(max_length=1, choices=POSITION_CHOICES)
 	secondary_position = models.CharField(

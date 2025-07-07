@@ -177,7 +177,7 @@ class DraftPositionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema(
 	summary='Generate draft order',
-	description='Generate the complete draft order for a draft event, supporting both standard and snake draft formats',
+	description='Generate the complete draft order for a draft event',
 	tags=['Drafts'],
 	parameters=[
 		OpenApiParameter(
@@ -246,11 +246,7 @@ def generate_draft_order(request, draft_id):
 
 		overall_pick = 1
 		for round_num in range(1, rounds + 1):
-			pick_order = (
-				teams_order
-				if round_num % 2 == 1 or not draft.is_snake_draft
-				else teams_order[::-1]
-			)
+			pick_order = teams_order if round_num % 2 == 1 else teams_order[::-1]
 
 			for pick_num, team_id in enumerate(pick_order, 1):
 				DraftPosition.objects.create(
@@ -386,7 +382,6 @@ def make_draft_pick(request, position_id):
 							'id': 1,
 							'year': 2025,
 							'is_completed': False,
-							'is_snake_draft': True,
 						},
 						'positions': [
 							{
