@@ -1,14 +1,17 @@
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
-                                   OpenApiResponse, extend_schema,
-                                   extend_schema_view)
+from drf_spectacular.utils import (
+	OpenApiExample,
+	OpenApiParameter,
+	OpenApiResponse,
+	extend_schema,
+	extend_schema_view,
+)
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Draft, DraftPosition, Pick
-from .serializers import (DraftPositionSerializer, DraftSerializer,
-                          PickSerializer)
+from .serializers import DraftPositionSerializer, DraftSerializer, PickSerializer
 
 
 @extend_schema_view(

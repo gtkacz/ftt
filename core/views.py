@@ -1,8 +1,12 @@
 from django.contrib.auth import authenticate
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
-                                   OpenApiResponse, extend_schema,
-                                   extend_schema_view)
+from drf_spectacular.utils import (
+	OpenApiExample,
+	OpenApiParameter,
+	OpenApiResponse,
+	extend_schema,
+	extend_schema_view,
+)
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -12,8 +16,12 @@ from draft.models import Pick
 from draft.serializers import PickSerializer
 
 from .models import Player, Team, User
-from .serializers import (PlayerSerializer, TeamSerializer,
-                          UserRegistrationSerializer, UserSerializer)
+from .serializers import (
+	PlayerSerializer,
+	TeamSerializer,
+	UserRegistrationSerializer,
+	UserSerializer,
+)
 
 
 @extend_schema_view(
