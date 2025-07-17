@@ -1,9 +1,8 @@
-from django.contrib.auth import authenticate
 from rest_framework import serializers
 
 from ftt.common.util import django_obj_to_dict
 
-from .models import Player, Team, User
+from .models import NBATeam, Player, Team, User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -38,6 +37,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		user.set_password(password)
 		user.save()
 		return user
+
+
+class NBATeamSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = NBATeam
+		fields = '__all__'
+		read_only_fields = ['id', 'created_at']
+		extra_kwargs = {
+			'name': {'help_text': 'NBA team name'},
+			'abbreviation': {'help_text': 'NBA team abbreviation (e.g. LAL)'},
+			'city': {'help_text': 'City where the NBA team is based'},
+			'conference': {'help_text': 'Conference the team belongs to (East/West)'},
+			'created_at': {'help_text': 'Date and time when NBA team was added'},
+		}
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -115,6 +128,14 @@ class PlayerSerializer(serializers.ModelSerializer):
 	photo = serializers.SerializerMethodField(
 		help_text='URL to the player photo, if available'
 	)
+	real_team = serializers.SerializerMethodField(
+		help_text='Real NBA team this player is associated with, if any'
+	)
+
+	def get_real_team(self, obj: Player) -> str:
+		if obj.real_team:
+			return django_obj_to_dict(obj.real_team)
+		return ''
 
 	def get_photo(self, obj: Player) -> str:
 		if obj.nba_id:

@@ -9,3 +9,4 @@ django-extensions
 python-box
 pandas
 requests
+django-model2puml

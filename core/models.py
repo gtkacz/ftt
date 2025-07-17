@@ -58,6 +58,15 @@ class Team(models.Model):
 		)
 
 
+class NBATeam(models.Model):
+	city = models.CharField(max_length=100)
+	name = models.CharField(max_length=100)
+	abbreviation = models.CharField(max_length=10)
+
+	def __str__(self):
+		return f'{self.city} {self.name} ({self.abbreviation})'
+
+
 class Player(models.Model):
 	POSITION_CHOICES = [
 		('G', 'Guard'),
@@ -88,6 +97,13 @@ class Player(models.Model):
 	is_rfa = models.BooleanField(default=False, help_text='Restricted Free Agent')
 	is_to = models.BooleanField(default=False, help_text='Team Option')
 	is_ir = models.BooleanField(default=False, help_text='Injury Reserve')
+	real_team = models.ForeignKey(
+		NBATeam,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name='players',
+	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

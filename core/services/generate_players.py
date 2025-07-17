@@ -1,16 +1,70 @@
+from datetime import date
+
 import pandas as pd
 import requests
+from django.db.transaction import atomic
+
+from core.models import NBATeam, Player
 
 
-def parse_response_to_dataframe(response_dict):
+def parse_response_to_dataframe(
+	response_dict: dict,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
 	"""Parse NBA API response to pandas DataFrame"""
 	result_set = response_dict['resultSets'][0]
 	headers = result_set['headers']
 	rows = result_set['rowSet']
 
-	df = pd.DataFrame(rows, columns=headers)
+	players_df = pd.DataFrame(rows, columns=headers)[
+		[
+			'PERSON_ID',
+			'PLAYER_LAST_NAME',
+			'PLAYER_FIRST_NAME',
+			'POSITION',
+			'ROSTER_STATUS',
+			'TO_YEAR',
+			'TEAM_ABBREVIATION',
+		]
+	]
 
-	return df
+	position_split = players_df['POSITION'].str.split('-', expand=True)
+	players_df['POSITION'] = position_split[0]
+	players_df['SECONDARY_POSITION'] = position_split[1]
+
+	players_df.rename(
+		columns={
+			'PERSON_ID': 'nba_id',
+			'PLAYER_LAST_NAME': 'last_name',
+			'PLAYER_FIRST_NAME': 'first_name',
+			'POSITION': 'primary_position',
+			'SECONDARY_POSITION': 'secondary_position',
+			'ROSTER_STATUS': 'roster_status',
+			'TEAM_ABBREVIATION': 'real_team',
+		},
+		inplace=True,
+	)
+
+	players_df = players_df[players_df['TO_YEAR'].astype(int) >= date.today().year - 5]
+
+	teams_df = pd.DataFrame(rows, columns=headers)[
+		[
+			'TEAM_CITY',
+			'TEAM_NAME',
+			'TEAM_ABBREVIATION',
+		]
+	]
+
+	teams_df = teams_df.drop_duplicates(subset=['TEAM_ABBREVIATION'])
+	teams_df.rename(
+		columns={
+			'TEAM_CITY': 'city',
+			'TEAM_NAME': 'name',
+			'TEAM_ABBREVIATION': 'abbreviation',
+		},
+		inplace=True,
+	)
+
+	return players_df, teams_df
 
 
 def run():
@@ -35,8 +89,45 @@ def run():
 		'Cookie': 'ak_bmsc=75E63D34D98CBE33BA60F827BD28D7A2~000000000000000000000000000000~YAAQ+H4SAoRN9BSYAQAAclbRFRwZK+ABCcHpy3MenVOqwfFt5LVkweoyR2sadeguo76N67NXiC5OBn/vLF9KIZ/zSyX19eJopup6RSu0lnP6tLngDp8TG7LVrb+qAtaf+9NQKrDisYEAllCi82VlX3YVXQSWUag5XCwftCztOtrriwjDab8xzvYesfA45V95feMpLVogKFl11/Gp+zzLHLCktooqHQcnmGyQLBbBEI5d7Ejt1NyTKkhy3dYWtJnjJN+CyK4v+qBXa2IoZ5ZKxbUofmbZ+7n2FlSgT11YwiwF2C3eGC/dBbme3+z1CjRDgOYa+Wg18ttG2gBs8fIIHQ0kUfABHKJ4Gg==',
 	}
 
-	response = requests.request('GET', url, headers=headers, data=payload)
+	try:
+		response = requests.request(
+			'GET', url, headers=headers, data=payload, timeout=5
+		)
+		response.raise_for_status()
 
-	response.raise_for_status()
+		players_df, teams_df = parse_response_to_dataframe(response.json())
 
-	return parse_response_to_dataframe(response.json())
+	except requests.exceptions.ReadTimeout:
+		print('Request timed out, using backup data.')
+
+		from json import loads
+
+		with open('core/services/backup.json', 'r') as file:
+			response_dict = loads(file.read())
+
+		players_df, teams_df = parse_response_to_dataframe(response_dict)
+
+	with atomic():
+		NBATeam.objects.bulk_create(
+			[NBATeam(**row) for row in teams_df.to_dict(orient='records')]
+		)
+
+		players_df['real_team'] = players_df['real_team'].apply(
+			lambda x: NBATeam.objects.get(abbreviation=x) if pd.notnull(x) else None
+		)
+
+		Player.objects.bulk_create(
+			[
+				Player(**row)
+				for row in players_df[~players_df['primary_position'].isnull()][
+					[
+						'nba_id',
+						'last_name',
+						'first_name',
+						'primary_position',
+						'secondary_position',
+						'real_team',
+					]
+				].to_dict(orient='records')
+			]
+		)
