@@ -65,7 +65,8 @@ class Player(models.Model):
 		('C', 'Center'),
 	]
 
-	name = models.CharField(max_length=100)
+	first_name = models.CharField(max_length=100)
+	last_name = models.CharField(max_length=100)
 	team = models.ForeignKey(
 		Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='players'
 	)
@@ -77,7 +78,7 @@ class Player(models.Model):
 		blank=True,
 	)
 	contract_duration = models.PositiveIntegerField(
-		validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True
+		validators=[MinValueValidator(1), MaxValueValidator(4)], null=True, blank=True
 	)
 	primary_position = models.CharField(max_length=1, choices=POSITION_CHOICES)
 	secondary_position = models.CharField(
@@ -91,7 +92,7 @@ class Player(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 
 	def __str__(self):
-		return self.name
+		return f'{self.first_name} {self.last_name}'
 
 	class Meta:
-		ordering = ['name']
+		ordering = ['last_name']

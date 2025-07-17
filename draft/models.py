@@ -36,6 +36,7 @@ class Draft(models.Model):
 		Player, related_name='drafts', blank=True
 	)
 	is_completed = models.BooleanField(default=False)
+	is_snake = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,6 +45,23 @@ class Draft(models.Model):
 		return self.draftable_players.filter(
 			is_active=True, contract__isnull=True
 		).order_by('name')
+
+	def drafted_players(self) -> models.QuerySet:
+		"""Returns the list of players that have been drafted in this draft"""
+		return self.draftable_players.filter(contract__isnull=False).order_by('name')
+
+	@classmethod
+	def generate_snake_order(cls, teams: list[Team]) -> list[Team]:
+		"""Generates a snake draft order based on the list of teams"""
+		order = []
+
+		for i in range(len(teams)):
+			if i % 2 == 0:
+				order.append(teams[i])
+			else:
+				order.append(teams[len(teams) - 1 - i])
+
+		return order
 
 	def __str__(self):
 		return f'{self.year} Draft'

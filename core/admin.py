@@ -16,7 +16,8 @@ class TeamAdmin(admin.ModelAdmin):
 
 class PlayerAdmin(admin.ModelAdmin):
 	list_display = [
-		'name',
+		'first_name',
+		'last_name',
 		'team',
 		'salary',
 		'contract_duration',
@@ -24,7 +25,7 @@ class PlayerAdmin(admin.ModelAdmin):
 		'is_rfa',
 	]
 	list_filter = ['primary_position', 'secondary_position', 'is_rfa', 'team']
-	search_fields = ['name', 'team__name']
+	search_fields = ['first_name', 'last_name', 'team__name']
 
 
 admin.site.register(User, UserAdmin)

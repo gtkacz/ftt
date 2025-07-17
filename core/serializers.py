@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
+from ftt.common.util import django_obj_to_dict
+
 from .models import Player, Team, User
 
 
@@ -36,20 +38,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		user.set_password(password)
 		user.save()
 		return user
-
-
-class UserSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = User
-		fields = '__all__'
-		read_only_fields = ['id', 'date_joined']
-		extra_kwargs = {
-			'username': {'help_text': 'Unique username for the user'},
-			'email': {'help_text': 'User email address'},
-			'first_name': {'help_text': 'User first name'},
-			'last_name': {'help_text': 'User last name'},
-			'date_joined': {'help_text': 'Date and time when user joined'},
-		}
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -99,12 +87,39 @@ class TeamSerializer(serializers.ModelSerializer):
 		return obj.can_bid()
 
 
+class UserSerializer(serializers.ModelSerializer):
+	team = TeamSerializer(
+		read_only=True,
+		help_text='Team information for the user, if they own a team',
+	)
+
+	class Meta:
+		model = User
+		fields = '__all__'
+		read_only_fields = ['id', 'date_joined']
+		extra_kwargs = {
+			'username': {'help_text': 'Unique username for the user'},
+			'email': {'help_text': 'User email address'},
+			'first_name': {'help_text': 'User first name'},
+			'last_name': {'help_text': 'User last name'},
+			'date_joined': {'help_text': 'Date and time when user joined'},
+		}
+
+
 class PlayerSerializer(serializers.ModelSerializer):
 	team_name = serializers.CharField(
 		source='team.name',
 		read_only=True,
 		help_text='Name of the team this player belongs to',
 	)
+	photo = serializers.SerializerMethodField(
+		help_text='URL to the player photo, if available'
+	)
+
+	def get_photo(self, obj: Player) -> str:
+		if obj.nba_id:
+			return f'https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png'
+		return ''
 
 	class Meta:
 		model = Player
