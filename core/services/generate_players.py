@@ -1,4 +1,5 @@
 from datetime import date
+from json import dumps
 
 import pandas as pd
 import requests
@@ -15,17 +16,7 @@ def parse_response_to_dataframe(
 	headers = result_set['headers']
 	rows = result_set['rowSet']
 
-	players_df = pd.DataFrame(rows, columns=headers)[
-		[
-			'PERSON_ID',
-			'PLAYER_LAST_NAME',
-			'PLAYER_FIRST_NAME',
-			'POSITION',
-			'ROSTER_STATUS',
-			'TO_YEAR',
-			'TEAM_ABBREVIATION',
-		]
-	]
+	players_df = pd.DataFrame(rows, columns=headers)
 
 	position_split = players_df['POSITION'].str.split('-', expand=True)
 	players_df['POSITION'] = position_split[0]
@@ -45,6 +36,9 @@ def parse_response_to_dataframe(
 	)
 
 	players_df = players_df[players_df['TO_YEAR'].astype(int) >= date.today().year - 5]
+	players_df['real_team'] = players_df.apply(
+		lambda x: x['real_team'] if pd.notnull(x['roster_status']) else None, axis=1
+	)
 
 	teams_df = pd.DataFrame(rows, columns=headers)[
 		[
@@ -55,6 +49,7 @@ def parse_response_to_dataframe(
 	]
 
 	teams_df = teams_df.drop_duplicates(subset=['TEAM_ABBREVIATION'])
+	teams_df = teams_df[teams_df['TEAM_ABBREVIATION'].notnull()]
 	teams_df.rename(
 		columns={
 			'TEAM_CITY': 'city',
@@ -116,18 +111,29 @@ def run():
 			lambda x: NBATeam.objects.get(abbreviation=x) if pd.notnull(x) else None
 		)
 
+		player_needed_cols = [
+			'nba_id',
+			'last_name',
+			'first_name',
+			'primary_position',
+			'secondary_position',
+			'real_team',
+		]
+
+		players_df['metadata'] = players_df[
+			[
+				col
+				for col in players_df.columns
+				if col not in player_needed_cols and col not in teams_df.columns
+			]
+		].apply(lambda row: dumps(row.to_dict()), axis=1)
+		players_df = players_df[player_needed_cols + ['metadata']]
+
 		Player.objects.bulk_create(
 			[
 				Player(**row)
 				for row in players_df[~players_df['primary_position'].isnull()][
-					[
-						'nba_id',
-						'last_name',
-						'first_name',
-						'primary_position',
-						'secondary_position',
-						'real_team',
-					]
+					player_needed_cols + ['metadata']
 				].to_dict(orient='records')
 			]
 		)
