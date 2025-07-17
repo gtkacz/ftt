@@ -12,17 +12,28 @@ certifi==2025.7.14
     # via requests
 charset-normalizer==3.4.2
     # via requests
+crispy-bootstrap4==2025.6
+    # via -r requirements.in
 django==5.2.4
     # via
     #   -r requirements.in
+    #   crispy-bootstrap4
     #   django-cors-headers
+    #   django-crispy-forms
     #   django-extensions
+    #   django-filter
     #   djangorestframework
     #   djangorestframework-simplejwt
     #   drf-spectacular
 django-cors-headers==4.7.0
     # via -r requirements.in
+django-crispy-forms==2.4
+    # via
+    #   -r requirements.in
+    #   crispy-bootstrap4
 django-extensions==4.1
+    # via -r requirements.in
+django-filter==25.1
     # via -r requirements.in
 django-model2puml==0.6.1
     # via -r requirements.in

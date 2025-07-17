@@ -10,3 +10,6 @@ python-box
 pandas
 requests
 django-model2puml
+django-filter
+django-crispy-forms
+crispy-bootstrap4

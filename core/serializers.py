@@ -131,6 +131,10 @@ class PlayerSerializer(serializers.ModelSerializer):
 	real_team = serializers.SerializerMethodField(
 		help_text='Real NBA team this player is associated with, if any'
 	)
+	relevancy = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Relevancy score of the player based on performance metrics',
+	)
 
 	def get_real_team(self, obj: Player) -> str:
 		if obj.real_team:
@@ -141,6 +145,21 @@ class PlayerSerializer(serializers.ModelSerializer):
 		if obj.nba_id:
 			return f'https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png'
 		return ''
+
+	def get_relevancy(self, obj: Player) -> float:
+		from json import loads
+
+		if not obj.metadata:
+			return 0.0
+		try:
+			metadata = loads(obj.metadata)
+			return (
+				metadata.get('PTS', 0.0)
+				+ metadata.get('AST', 0.0)
+				+ metadata.get('REB', 0.0)
+			)
+		except (ValueError, TypeError):
+			return 0.0
 
 	class Meta:
 		model = Player

@@ -48,9 +48,12 @@ INSTALLED_APPS = [
 	'rest_framework_simplejwt',
 	'rest_framework_simplejwt.token_blacklist',
 	'corsheaders',
+	'puml_generator',
 	'drf_spectacular',
 	'django_extensions',
-	'puml_generator',
+	'django_filters',
+	'crispy_forms',
+	'crispy_bootstrap4',
 	'core',
 	'draft',
 	'auction',
@@ -121,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'America/Sao_Paulo'
 
@@ -153,6 +156,11 @@ REST_FRAMEWORK = {
 		'rest_framework.permissions.AllowAny'
 		if DEBUG
 		else 'rest_framework.permissions.IsAuthenticated',
+	],
+	'DEFAULT_FILTER_BACKENDS': [
+		'django_filters.rest_framework.DjangoFilterBackend',
+		'rest_framework.filters.OrderingFilter',
+		'rest_framework.filters.SearchFilter',
 	],
 	'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 	'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -203,3 +211,6 @@ LEAGUE_SETTINGS = Box(
 		'MAX_PLAYER_CAP': int(environ.get('MAX_PLAYER_CAP', 15)),
 	}
 )
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
