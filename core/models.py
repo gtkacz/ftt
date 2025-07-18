@@ -92,6 +92,7 @@ class Player(models.Model):
 		blank=True,
 		related_name='players',
 	)
+	slug = models.SlugField(max_length=100, unique=True, null=True, blank=True)
 	metadata = models.JSONField(default=dict, blank=True, null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

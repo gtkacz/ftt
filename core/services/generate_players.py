@@ -31,6 +31,7 @@ def parse_response_to_dataframe(
 			'SECONDARY_POSITION': 'secondary_position',
 			'ROSTER_STATUS': 'roster_status',
 			'TEAM_ABBREVIATION': 'real_team',
+			'PLAYER_SLUG': 'slug',
 		},
 		inplace=True,
 	)
@@ -104,7 +105,10 @@ def run():
 
 	with atomic():
 		NBATeam.objects.bulk_create(
-			[NBATeam(**row) for row in teams_df.to_dict(orient='records')]
+			[NBATeam(**row) for row in teams_df.to_dict(orient='records')],
+			update_conflicts=True,
+			unique_fields=['abbreviation'],
+			batch_size=1000,
 		)
 
 		players_df['real_team'] = players_df['real_team'].apply(
@@ -118,6 +122,7 @@ def run():
 			'primary_position',
 			'secondary_position',
 			'real_team',
+			'slug',
 		]
 
 		players_df['metadata'] = players_df[
@@ -135,5 +140,8 @@ def run():
 				for row in players_df[~players_df['primary_position'].isnull()][
 					player_needed_cols + ['metadata']
 				].to_dict(orient='records')
-			]
+			],
+			update_conflicts=True,
+			unique_fields=['nba_id'],
+			batch_size=1000,
 		)
