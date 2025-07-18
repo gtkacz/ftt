@@ -80,14 +80,14 @@ class Draft(models.Model):
 		"""Returns the list of players that have been drafted in this draft"""
 		return self.draftable_players.filter(contract__isnull=False).order_by('name')
 
-	def generate_draft_order(self) -> models.QuerySet[Team]:
+	def generate_draft_order(self) -> list[int]:
 		"""Generates a snake draft order based on the list of teams"""
 		teams = list(self.teams.all().values_list('id', flat=True))
 
 		teams_order = list(teams)
 		shuffle(teams_order)
 
-		return Team.objects.filter(id__in=teams_order)
+		return teams_order
 
 	def start(self):
 		"""Starts the draft and generates the draft order"""
@@ -101,7 +101,7 @@ class Draft(models.Model):
 			raise ValueError('Draft must have at least one draftable player')
 
 		with transaction.atomic():
-			teams_order = self.generate_draft_order().values_list('id', flat=True)
+			teams_order = self.generate_draft_order()
 			picks = (
 				Pick.objects.none()
 				if self.is_league_draft

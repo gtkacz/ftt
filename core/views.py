@@ -9,8 +9,13 @@ from draft.models import Pick
 from draft.serializers import PickSerializer
 
 from .models import Player, Team, User
-from .serializers import (PlayerSerializer, TeamSerializer,
-                          UserRegistrationSerializer, UserSerializer)
+from .serializers import (
+	PlayerSerializer,
+	TeamSerializer,
+	UserRegistrationSerializer,
+	UserSerializer,
+	UserUpdateSerializer,
+)
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -68,6 +73,16 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 	filterset_fields = '__all__'
+
+	def update(self, request, *args, **kwargs):
+		instance = self.get_object()
+
+		serializer = UserUpdateSerializer(instance, data=request.data, partial=True)
+		serializer.is_valid(raise_exception=True)
+
+		self.perform_update(serializer)
+
+		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TeamListCreateView(generics.ListCreateAPIView):

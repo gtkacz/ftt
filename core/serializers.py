@@ -32,6 +32,38 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		user.save()
 		return user
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+	password = serializers.CharField(
+		write_only=True,
+		min_length=8,
+		help_text='Password must be at least 8 characters long',
+	)
+	password_confirm = serializers.CharField(
+		write_only=True, help_text='Must match the password field'
+	)
+
+	class Meta:
+		model = User
+		fields = '__all__'
+
+	def validate(self, attrs):
+		if attrs['password'] != attrs['password_confirm']:
+			raise serializers.ValidationError("Passwords don't match")
+		return attrs
+
+	def update(self, instance, validated_data):
+		validated_data.pop('password_confirm', None)
+		password = validated_data.pop('password', None)
+
+		for attr, value in validated_data.items():
+			setattr(instance, attr, value)
+
+		if password:
+			instance.set_password(password)
+
+		instance.save()
+		return instance
+
 
 class NBATeamSerializer(serializers.ModelSerializer):
 	class Meta:

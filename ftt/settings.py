@@ -203,8 +203,11 @@ SIMPLE_JWT = {
 	'ROTATE_REFRESH_TOKENS': True,
 }
 
-CORS_ALLOWED_ORIGINS = ['https://gtkacz.github.io', 'http://localhost']
 CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+if not CORS_ALLOW_ALL_ORIGINS:
+	CORS_ALLOWED_ORIGINS = ['https://gtkacz.github.io', 'http://localhost']
+
 CORS_ALLOW_HEADERS = (
 	*default_headers,
 	'bypass-tunnel-reminder',

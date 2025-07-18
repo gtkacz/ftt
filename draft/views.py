@@ -166,6 +166,12 @@ def start_lottery_view(request, pk):
 	Start the lottery for a draft with the given primary key (pk).
 	Only authenticated users can access this endpoint.
 	"""
+	if not request.user.is_superuser:
+		return Response(
+			{'error': 'You do not have permission to start the lottery'},
+			status=status.HTTP_403_FORBIDDEN,
+		)
+
 	draft = Draft.objects.get(pk=pk)
 
 	if draft.starts_at and draft.starts_at <= timezone.now():
