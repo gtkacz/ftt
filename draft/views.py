@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Draft, DraftPosition, Pick
+from .models import Draft, DraftPick, Pick
 from .serializers import (DraftPositionSerializer, DraftSerializer,
                           PickSerializer)
 
@@ -32,13 +32,13 @@ class DraftDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class DraftPositionListCreateView(generics.ListCreateAPIView):
-	queryset = DraftPosition.objects.all()
+	queryset = DraftPick.objects.all()
 	serializer_class = DraftPositionSerializer
 	filterset_fields = '__all__'
 
 
 class DraftPositionDetailView(generics.RetrieveUpdateDestroyAPIView):
-	queryset = DraftPosition.objects.all()
+	queryset = DraftPick.objects.all()
 	serializer_class = DraftPositionSerializer
 	filterset_fields = '__all__'
 
@@ -59,14 +59,14 @@ def generate_draft_order(request, draft_id):
 			)
 
 		# Clear existing draft positions
-		DraftPosition.objects.filter(draft=draft).delete()
+		DraftPick.objects.filter(draft=draft).delete()
 
 		overall_pick = 1
 		for round_num in range(1, rounds + 1):
 			pick_order = teams_order if round_num % 2 == 1 else teams_order[::-1]
 
 			for pick_num, team_id in enumerate(pick_order, 1):
-				DraftPosition.objects.create(
+				DraftPick.objects.create(
 					draft=draft,
 					team_id=team_id,
 					round_number=round_num,
@@ -85,7 +85,7 @@ def generate_draft_order(request, draft_id):
 def make_draft_pick(request, position_id):
 	"""Make a draft pick for a specific draft position"""
 	try:
-		position = DraftPosition.objects.get(id=position_id)
+		position = DraftPick.objects.get(id=position_id)
 		player_id = request.data.get('player_id')
 
 		if position.is_pick_made:
@@ -128,7 +128,7 @@ def make_draft_pick(request, position_id):
 
 		return Response(DraftPositionSerializer(position).data)
 
-	except DraftPosition.DoesNotExist:
+	except DraftPick.DoesNotExist:
 		return Response(
 			{'error': 'Draft position not found'}, status=status.HTTP_404_NOT_FOUND
 		)
@@ -139,7 +139,7 @@ def draft_board(request, draft_id):
 	"""Get the current state of the draft board"""
 	try:
 		draft = Draft.objects.get(id=draft_id)
-		positions = DraftPosition.objects.filter(draft=draft).order_by('overall_pick')
+		positions = DraftPick.objects.filter(draft=draft).order_by('overall_pick')
 
 		return Response(
 			{

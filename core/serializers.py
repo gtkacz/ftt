@@ -147,18 +147,27 @@ class PlayerSerializer(serializers.ModelSerializer):
 		return ''
 
 	def get_relevancy(self, obj: Player) -> float:
-		from json import loads
-
-		if not obj.metadata:
-			return 0.0
 		try:
-			metadata = loads(obj.metadata)
-			return (
-				metadata.get('PTS', 0.0)
-				+ metadata.get('AST', 0.0)
-				+ metadata.get('REB', 0.0)
+			from json import loads
+
+			if (
+				not obj
+				or not obj.metadata
+				or not isinstance(obj.metadata, str)
+				or not obj.metadata.strip()
+				or obj.metadata == 'null'
+			):
+				return 0.0
+
+			metadata = loads(obj.metadata.lower().replace('nan', 'null'))
+
+			return round(
+				float(metadata.get('pts', 0.0))
+				+ float(metadata.get('ast', 0.0))
+				+ float(metadata.get('reb', 0.0)),
+				1,
 			)
-		except (ValueError, TypeError):
+		except Exception:
 			return 0.0
 
 	class Meta:

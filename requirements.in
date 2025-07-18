@@ -13,3 +13,4 @@ django-model2puml
 django-filter
 django-crispy-forms
 crispy-bootstrap4
+django-sslserver

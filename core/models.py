@@ -79,16 +79,6 @@ class Player(models.Model):
 	team = models.ForeignKey(
 		Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='players'
 	)
-	salary = models.DecimalField(
-		max_digits=10,
-		decimal_places=2,
-		validators=[MinValueValidator(0)],
-		null=True,
-		blank=True,
-	)
-	contract_duration = models.PositiveIntegerField(
-		validators=[MinValueValidator(1), MaxValueValidator(4)], null=True, blank=True
-	)
 	primary_position = models.CharField(max_length=1, choices=POSITION_CHOICES)
 	secondary_position = models.CharField(
 		max_length=1, choices=POSITION_CHOICES, null=True, blank=True
@@ -113,3 +103,20 @@ class Player(models.Model):
 
 	def __str__(self):
 		return f'{self.first_name} {self.last_name}'
+
+
+class Contract(models.Model):
+	player = models.OneToOneField(
+		Player, on_delete=models.CASCADE, related_name='contract'
+	)
+	team = models.ForeignKey(
+		Team, on_delete=models.CASCADE, related_name='contracts'
+	)
+	start_year = models.PositiveIntegerField()
+	duration = models.PositiveIntegerField(
+		validators=[MinValueValidator(1), MaxValueValidator(4)]
+	)
+	salary = models.DecimalField(max_digits=10, decimal_places=2)
+
+	def __str__(self):
+		return f'{self.player} - {self.team} ({self.start_year}-{self.start_year + self.duration - 1})'

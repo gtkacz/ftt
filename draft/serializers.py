@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from core.serializers import PlayerSerializer
 
-from .models import Draft, DraftPosition, Pick
+from .models import Draft, DraftPick, Pick
 
 
 class PickSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class DraftPositionSerializer(serializers.ModelSerializer):
 	)
 
 	class Meta:
-		model = DraftPosition
+		model = DraftPick
 		fields = '__all__'
 		read_only_fields = ['id', 'pick_made_at']
 		extra_kwargs = {
