@@ -73,13 +73,17 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 class TeamListCreateView(generics.ListCreateAPIView):
 	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
-	filterset_fields = '__all__'
+	filterset_fields = [
+		field.name for field in Team._meta.fields if field.name != 'avatar'
+	]
 
 
 class TeamDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
-	filterset_fields = '__all__'
+	filterset_fields = [
+		field.name for field in Team._meta.fields if field.name != 'avatar'
+	]
 
 
 @api_view(['GET'])

@@ -21,16 +21,6 @@ class PickSerializer(serializers.ModelSerializer):
 		model = Pick
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
-		extra_kwargs = {
-			'original_team': {'help_text': 'Team ID that originally owned this pick'},
-			'current_team': {'help_text': 'Team ID that currently owns this pick'},
-			'draft_year': {'help_text': 'Year this pick can be used in the draft'},
-			'round_number': {'help_text': 'Round number of this pick (1, 2, etc.)'},
-			'protections': {
-				'help_text': 'Optional description of pick protections (e.g., "Top 3 protected")'
-			},
-			'created_at': {'help_text': 'Date and time when pick was created'},
-		}
 
 
 class DraftPositionSerializer(serializers.ModelSerializer):
@@ -49,17 +39,6 @@ class DraftPositionSerializer(serializers.ModelSerializer):
 		model = DraftPick
 		fields = '__all__'
 		read_only_fields = ['id', 'pick_made_at']
-		extra_kwargs = {
-			'team': {'help_text': 'Team ID making this pick'},
-			'round_number': {'help_text': 'Round number (1, 2, etc.)'},
-			'pick_number': {'help_text': 'Pick number within the round'},
-			'overall_pick': {'help_text': 'Overall pick number in the entire draft'},
-			'selected_player': {
-				'help_text': 'Player ID selected with this pick (if made)'
-			},
-			'is_pick_made': {'help_text': 'Whether this pick has been made yet'},
-			'pick_made_at': {'help_text': 'Date and time when pick was made'},
-		}
 
 
 class DraftSerializer(serializers.ModelSerializer):
@@ -76,8 +55,3 @@ class DraftSerializer(serializers.ModelSerializer):
 		model = Draft
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
-		extra_kwargs = {
-			'year': {'help_text': 'Draft year (must be unique)'},
-			'is_completed': {'help_text': 'Whether this draft has been completed'},
-			'created_at': {'help_text': 'Date and time when draft was created'},
-		}

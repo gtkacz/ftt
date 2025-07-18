@@ -6,29 +6,58 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('core', '0010_player_metadata'),
+	]
 
-    dependencies = [
-        ('core', '0010_player_metadata'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='player',
-            name='contract_duration',
-        ),
-        migrations.RemoveField(
-            model_name='player',
-            name='salary',
-        ),
-        migrations.CreateModel(
-            name='Contract',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start_year', models.PositiveIntegerField()),
-                ('duration', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(4)])),
-                ('salary', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('player', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='contract', to='core.player')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contracts', to='core.team')),
-            ],
-        ),
-    ]
+	operations = [
+		migrations.RemoveField(
+			model_name='player',
+			name='contract_duration',
+		),
+		migrations.RemoveField(
+			model_name='player',
+			name='salary',
+		),
+		migrations.CreateModel(
+			name='Contract',
+			fields=[
+				(
+					'id',
+					models.BigAutoField(
+						auto_created=True,
+						primary_key=True,
+						serialize=False,
+						verbose_name='ID',
+					),
+				),
+				('start_year', models.PositiveIntegerField()),
+				(
+					'duration',
+					models.PositiveIntegerField(
+						validators=[
+							django.core.validators.MinValueValidator(1),
+							django.core.validators.MaxValueValidator(4),
+						]
+					),
+				),
+				('salary', models.DecimalField(decimal_places=2, max_digits=10)),
+				(
+					'player',
+					models.OneToOneField(
+						on_delete=django.db.models.deletion.CASCADE,
+						related_name='contract',
+						to='core.player',
+					),
+				),
+				(
+					'team',
+					models.ForeignKey(
+						on_delete=django.db.models.deletion.CASCADE,
+						related_name='contracts',
+						to='core.team',
+					),
+				),
+			],
+		),
+	]

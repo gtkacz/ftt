@@ -84,8 +84,6 @@ class Player(models.Model):
 		max_length=1, choices=POSITION_CHOICES, null=True, blank=True
 	)
 	nba_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
-	is_rfa = models.BooleanField(default=False, help_text='Restricted Free Agent')
-	is_to = models.BooleanField(default=False, help_text='Team Option')
 	is_ir = models.BooleanField(default=False, help_text='Injury Reserve')
 	real_team = models.ForeignKey(
 		NBATeam,
@@ -107,16 +105,20 @@ class Player(models.Model):
 
 class Contract(models.Model):
 	player = models.OneToOneField(
-		Player, on_delete=models.CASCADE, related_name='contract'
+		Player, on_delete=models.CASCADE, related_name='contract', null=True, blank=True
 	)
 	team = models.ForeignKey(
-		Team, on_delete=models.CASCADE, related_name='contracts'
+		Team, on_delete=models.CASCADE, related_name='contracts', null=True, blank=True
 	)
 	start_year = models.PositiveIntegerField()
 	duration = models.PositiveIntegerField(
 		validators=[MinValueValidator(1), MaxValueValidator(4)]
 	)
 	salary = models.DecimalField(max_digits=10, decimal_places=2)
+	is_rfa = models.BooleanField(default=False, help_text='Restricted Free Agent')
+	is_to = models.BooleanField(default=False, help_text='Team Option')
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
 
 	def __str__(self):
 		return f'{self.player} - {self.team} ({self.start_year}-{self.start_year + self.duration - 1})'

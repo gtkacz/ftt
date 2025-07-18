@@ -206,8 +206,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = ['https://gtkacz.github.io', 'http://localhost']
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_HEADERS = (
-    *default_headers,
-    "bypass-tunnel-reminder",
+	*default_headers,
+	'bypass-tunnel-reminder',
 )
 
 LEAGUE_SETTINGS = Box(

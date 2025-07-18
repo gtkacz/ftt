@@ -1,6 +1,9 @@
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
 from .serializers import (DraftPositionSerializer, DraftSerializer,
@@ -117,7 +120,6 @@ def make_draft_pick(request, position_id):
 		# Make the pick
 		position.selected_player = player
 		position.is_pick_made = True
-		from django.utils import timezone
 
 		position.pick_made_at = timezone.now()
 		position.save()
@@ -152,6 +154,60 @@ def draft_board(request, draft_id):
 				else None,
 			}
 		)
+
+	except Draft.DoesNotExist:
+		return Response({'error': 'Draft not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def start_lottery_view(request, pk):
+	"""
+	Start the lottery for a draft with the given primary key (pk).
+	Only authenticated users can access this endpoint.
+	"""
+	draft = Draft.objects.get(pk=pk)
+
+	if draft.starts_at and draft.starts_at <= timezone.now():
+		return Response(
+			{'error': 'Draft already started'}, status=status.HTTP_400_BAD_REQUEST
+		)
+
+	if DraftPick.objects.filter(draft=draft).exists():
+		return Response(
+			{'message': 'Draft picks already exist'},
+			status=status.HTTP_204_NO_CONTENT,
+		)
+
+	return Response(
+		{
+			'message': 'Lottery started successfully',
+			'order': draft.start(),
+		},
+		status=status.HTTP_200_OK,
+	)
+
+
+@api_view(['GET'])
+def lottery_view(request, pk):
+	"""
+	Get the lottery results for a draft with the given primary key (pk).
+	Only authenticated users can access this endpoint.
+	"""
+	try:
+		draft = Draft.objects.get(pk=pk)
+		picks = DraftPick.objects.filter(draft=draft).order_by('overall_pick')
+		data = list(
+			picks.values(
+				'pick_number', 'contract', 'pick__round_number', 'pick__current_team'
+			)
+		)
+
+		for pick in data:
+			pick['contract'] = (
+				django_obj_to_dict(pick['contract']) if pick['contract'] else None
+			)
+
+		return Response({'picks': data})
 
 	except Draft.DoesNotExist:
 		return Response({'error': 'Draft not found'}, status=status.HTTP_404_NOT_FOUND)

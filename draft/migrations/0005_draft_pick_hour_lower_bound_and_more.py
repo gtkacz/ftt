@@ -5,62 +5,127 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('core', '0011_remove_player_contract_duration_remove_player_salary_and_more'),
+		('draft', '0004_draft_is_snake'),
+	]
 
-    dependencies = [
-        ('core', '0011_remove_player_contract_duration_remove_player_salary_and_more'),
-        ('draft', '0004_draft_is_snake'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='draft',
-            name='pick_hour_lower_bound',
-            field=models.PositiveIntegerField(default=8, help_text='Lower bound for the hour of the day when picks can be made'),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='pick_hour_upper_bound',
-            field=models.PositiveIntegerField(default=22, help_text='Upper bound for the hour of the day when picks can be made'),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='rounds',
-            field=models.PositiveIntegerField(default=2, help_text='Number of rounds in the draft'),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='starts_at',
-            field=models.DateTimeField(blank=True, help_text='Start time of the draft', null=True),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='teams',
-            field=models.ManyToManyField(blank=True, help_text='Teams participating in the draft', related_name='drafts', to='core.team'),
-        ),
-        migrations.AddField(
-            model_name='draft',
-            name='time_limit_per_pick',
-            field=models.PositiveIntegerField(default=180, help_text='Time limit in minutes for each pick'),
-        ),
-        migrations.CreateModel(
-            name='DraftPick',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pick_number', models.PositiveIntegerField(help_text='Pick number within the round')),
-                ('overall_pick', models.PositiveIntegerField(help_text='Overall pick number in draft')),
-                ('started_at', models.DateTimeField(blank=True, help_text='Time when the pick was started', null=True)),
-                ('is_pick_made', models.BooleanField(default=False)),
-                ('pick_made_at', models.DateTimeField(blank=True, null=True)),
-                ('draft', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='draft_positions', to='draft.draft')),
-                ('pick', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='draft_positions', to='draft.pick')),
-                ('selected_player', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.player')),
-            ],
-            options={
-                'ordering': ['draft', 'pick'],
-                'unique_together': {('draft', 'pick')},
-            },
-        ),
-        migrations.DeleteModel(
-            name='DraftPosition',
-        ),
-    ]
+	operations = [
+		migrations.AddField(
+			model_name='draft',
+			name='pick_hour_lower_bound',
+			field=models.PositiveIntegerField(
+				default=8,
+				help_text='Lower bound for the hour of the day when picks can be made',
+			),
+		),
+		migrations.AddField(
+			model_name='draft',
+			name='pick_hour_upper_bound',
+			field=models.PositiveIntegerField(
+				default=22,
+				help_text='Upper bound for the hour of the day when picks can be made',
+			),
+		),
+		migrations.AddField(
+			model_name='draft',
+			name='rounds',
+			field=models.PositiveIntegerField(
+				default=2, help_text='Number of rounds in the draft'
+			),
+		),
+		migrations.AddField(
+			model_name='draft',
+			name='starts_at',
+			field=models.DateTimeField(
+				blank=True, help_text='Start time of the draft', null=True
+			),
+		),
+		migrations.AddField(
+			model_name='draft',
+			name='teams',
+			field=models.ManyToManyField(
+				blank=True,
+				help_text='Teams participating in the draft',
+				related_name='drafts',
+				to='core.team',
+			),
+		),
+		migrations.AddField(
+			model_name='draft',
+			name='time_limit_per_pick',
+			field=models.PositiveIntegerField(
+				default=180, help_text='Time limit in minutes for each pick'
+			),
+		),
+		migrations.CreateModel(
+			name='DraftPick',
+			fields=[
+				(
+					'id',
+					models.BigAutoField(
+						auto_created=True,
+						primary_key=True,
+						serialize=False,
+						verbose_name='ID',
+					),
+				),
+				(
+					'pick_number',
+					models.PositiveIntegerField(
+						help_text='Pick number within the round'
+					),
+				),
+				(
+					'overall_pick',
+					models.PositiveIntegerField(
+						help_text='Overall pick number in draft'
+					),
+				),
+				(
+					'started_at',
+					models.DateTimeField(
+						blank=True,
+						help_text='Time when the pick was started',
+						null=True,
+					),
+				),
+				('is_pick_made', models.BooleanField(default=False)),
+				('pick_made_at', models.DateTimeField(blank=True, null=True)),
+				(
+					'draft',
+					models.ForeignKey(
+						on_delete=django.db.models.deletion.CASCADE,
+						related_name='draft_positions',
+						to='draft.draft',
+					),
+				),
+				(
+					'pick',
+					models.ForeignKey(
+						blank=True,
+						null=True,
+						on_delete=django.db.models.deletion.CASCADE,
+						related_name='draft_positions',
+						to='draft.pick',
+					),
+				),
+				(
+					'selected_player',
+					models.ForeignKey(
+						blank=True,
+						null=True,
+						on_delete=django.db.models.deletion.SET_NULL,
+						to='core.player',
+					),
+				),
+			],
+			options={
+				'ordering': ['draft', 'pick'],
+				'unique_together': {('draft', 'pick')},
+			},
+		),
+		migrations.DeleteModel(
+			name='DraftPosition',
+		),
+	]

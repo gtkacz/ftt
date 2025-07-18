@@ -31,4 +31,14 @@ urlpatterns = [
 		views.make_draft_pick,
 		name='make-draft-pick',
 	),
+	path(
+		'drafts/<int:pk>/lottery/',
+		views.lottery_view,
+		name='lottery',
+	),
+	path(
+		'drafts/<int:pk>/lottery/start/',
+		views.start_lottery_view,
+		name='start-lottery',
+	),
 ]

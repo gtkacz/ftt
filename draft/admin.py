@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from .models import Draft, DraftPick, Pick
 
-
 # class PickAdmin(admin.ModelAdmin):
 # 	list_display = [
 # 		'__str__',

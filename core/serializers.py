@@ -18,12 +18,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = '__all__'
-		extra_kwargs = {
-			'username': {'help_text': 'Unique username for the user'},
-			'email': {'help_text': 'User email address'},
-			'first_name': {'help_text': 'User first name'},
-			'last_name': {'help_text': 'User last name'},
-		}
 
 	def validate(self, attrs):
 		if attrs['password'] != attrs['password_confirm']:
@@ -44,13 +38,6 @@ class NBATeamSerializer(serializers.ModelSerializer):
 		model = NBATeam
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
-		extra_kwargs = {
-			'name': {'help_text': 'NBA team name'},
-			'abbreviation': {'help_text': 'NBA team abbreviation (e.g. LAL)'},
-			'city': {'help_text': 'City where the NBA team is based'},
-			'conference': {'help_text': 'Conference the team belongs to (East/West)'},
-			'created_at': {'help_text': 'Date and time when NBA team was added'},
-		}
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -77,12 +64,6 @@ class TeamSerializer(serializers.ModelSerializer):
 		model = Team
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at', 'total_salary', 'total_players']
-		extra_kwargs = {
-			'name': {'help_text': 'Team name'},
-			'owner': {'help_text': 'User ID of the team owner'},
-			'avatar': {'help_text': 'Team avatar image (optional)'},
-			'created_at': {'help_text': 'Date and time when team was created'},
-		}
 
 	def get_total_salary(self, obj: Team) -> float:
 		return obj.total_salary()
@@ -110,13 +91,6 @@ class UserSerializer(serializers.ModelSerializer):
 		model = User
 		fields = '__all__'
 		read_only_fields = ['id', 'date_joined']
-		extra_kwargs = {
-			'username': {'help_text': 'Unique username for the user'},
-			'email': {'help_text': 'User email address'},
-			'first_name': {'help_text': 'User first name'},
-			'last_name': {'help_text': 'User last name'},
-			'date_joined': {'help_text': 'Date and time when user joined'},
-		}
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -174,19 +148,3 @@ class PlayerSerializer(serializers.ModelSerializer):
 		model = Player
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
-		extra_kwargs = {
-			'name': {'help_text': 'Player full name'},
-			'team': {
-				'help_text': 'Team ID this player belongs to (can be null for free agents)'
-			},
-			'salary': {'help_text': 'Player annual salary in dollars'},
-			'contract_duration': {'help_text': 'Contract length in years (1-10)'},
-			'primary_position': {
-				'help_text': 'Primary position: G (Guard), F (Forward), or C (Center)'
-			},
-			'secondary_position': {
-				'help_text': 'Secondary position (optional): G, F, or C'
-			},
-			'is_rfa': {'help_text': 'Whether player is a Restricted Free Agent'},
-			'created_at': {'help_text': 'Date and time when player was added'},
-		}
