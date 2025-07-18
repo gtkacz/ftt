@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from core.models import Contract
 from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
@@ -198,13 +199,19 @@ def lottery_view(request, pk):
 		picks = DraftPick.objects.filter(draft=draft).order_by('overall_pick')
 		data = list(
 			picks.values(
-				'pick_number', 'contract', 'pick__round_number', 'pick__current_team'
+				'overall_pick',
+				'pick_number',
+				'contract__id',
+				'pick__round_number',
+				'pick__current_team',
 			)
 		)
 
 		for pick in data:
-			pick['contract'] = (
-				django_obj_to_dict(pick['contract']) if pick['contract'] else None
+			pick['contract__id'] = (
+				django_obj_to_dict(Contract.objects.get(id=pick['contract__id']))
+				if pick['contract__id']
+				else None
 			)
 
 		return Response({'picks': data})
