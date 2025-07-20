@@ -92,7 +92,7 @@ class Command(BaseCommand):
 						selected_player = current_pick.make_pick(None)
 						picks_made += 1
 
-						logger.info(
+						logger.warning(
 							f'Auto picked {selected_player} for {current_pick.pick.current_team.name} '
 							f'in draft {draft.id} (pick {current_pick.overall_pick})'
 						)

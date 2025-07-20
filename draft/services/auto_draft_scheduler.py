@@ -23,7 +23,7 @@ class AutoDraftScheduler:
 				return
 
 			self.running = True
-			logger.info('Smart auto draft scheduler started')
+			logger.debug('Smart auto draft scheduler started')
 
 			# Delay initial database access to avoid AppConfig.ready() warning
 			self.timer = threading.Timer(1.0, self._process_and_schedule)
@@ -37,7 +37,7 @@ class AutoDraftScheduler:
 			if self.timer:
 				self.timer.cancel()
 				self.timer = None
-			logger.info('Smart auto draft scheduler stopped')
+			logger.debug('Smart auto draft scheduler stopped')
 
 	def _process_and_schedule(self):
 		"""Process current picks and schedule next wake time"""
@@ -55,7 +55,7 @@ class AutoDraftScheduler:
 				delay_seconds = (next_wake_time - timezone.now()).total_seconds()
 				delay_seconds = max(1, delay_seconds)  # Minimum 1 second delay
 
-				logger.info(
+				logger.warning(
 					f'Scheduling next auto-pick check in {delay_seconds:.1f} seconds at {next_wake_time}'
 				)
 
@@ -64,9 +64,9 @@ class AutoDraftScheduler:
 				self.timer.daemon = True
 				self.timer.start()
 			else:
-				# No active picks, check again in 5 minutes
-				logger.info('No active draft picks found, checking again in 5 minutes')
-				self.timer = threading.Timer(300, self._process_and_schedule)
+				# No active picks, check again in 1 hour
+				logger.debug('No active draft picks found, checking again in 1 hour')
+				self.timer = threading.Timer(3600, self._process_and_schedule)
 				self.timer.daemon = True
 				self.timer.start()
 
