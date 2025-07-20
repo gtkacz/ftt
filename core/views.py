@@ -145,5 +145,7 @@ class PlayerListCreateView(generics.ListCreateAPIView):
 class PlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Player.objects.all()
 	serializer_class = PlayerSerializer
-	filterset_fields = '__all__'
+	filterset_fields = [
+		field.name for field in Player._meta.fields if field.name != 'metadata'
+	]
 	ordering_fields = ['id', 'name', 'position', 'team', 'salary', 'relevancy']

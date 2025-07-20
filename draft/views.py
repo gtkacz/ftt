@@ -3,12 +3,12 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.models import Contract
+from core.models import Contract, Player
+from core.serializers import PlayerSerializer
 from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
-from .serializers import (DraftPositionSerializer, DraftSerializer,
-                          PickSerializer)
+from .serializers import DraftPositionSerializer, DraftSerializer, PickSerializer
 
 
 class PickListCreateView(generics.ListCreateAPIView):
@@ -85,58 +85,6 @@ def generate_draft_order(request, draft_id):
 		return Response({'error': 'Draft not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
-def make_draft_pick(request, position_id):
-	"""Make a draft pick for a specific draft position"""
-	try:
-		position = DraftPick.objects.get(id=position_id)
-		player_id = request.data.get('player_id')
-
-		if position.is_pick_made:
-			return Response(
-				{'error': 'Pick already made'}, status=status.HTTP_400_BAD_REQUEST
-			)
-
-		if not player_id:
-			return Response(
-				{'error': 'player_id is required'}, status=status.HTTP_400_BAD_REQUEST
-			)
-
-		from core.models import Player
-
-		try:
-			player = Player.objects.get(id=player_id)
-		except Player.DoesNotExist:
-			return Response(
-				{'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND
-			)
-
-		# Check if player is in draftable players
-		if not position.draft.draftable_players.filter(id=player_id).exists():
-			return Response(
-				{'error': 'Player not available in this draft'},
-				status=status.HTTP_400_BAD_REQUEST,
-			)
-
-		# Make the pick
-		position.selected_player = player
-		position.is_pick_made = True
-
-		position.pick_made_at = timezone.now()
-		position.save()
-
-		# Assign player to team
-		player.team = position.team
-		player.save()
-
-		return Response(DraftPositionSerializer(position).data)
-
-	except DraftPick.DoesNotExist:
-		return Response(
-			{'error': 'Draft position not found'}, status=status.HTTP_404_NOT_FOUND
-		)
-
-
 @api_view(['GET'])
 def draft_board(request, draft_id):
 	"""Get the current state of the draft board"""
@@ -195,7 +143,7 @@ def start_lottery_view(request, pk):
 
 
 @api_view(['GET'])
-def lottery_view(request, pk):
+def draft_picks_view(request, pk):
 	"""
 	Get the lottery results for a draft with the given primary key (pk).
 	Only authenticated users can access this endpoint.
@@ -205,22 +153,82 @@ def lottery_view(request, pk):
 		picks = DraftPick.objects.filter(draft=draft).order_by('overall_pick')
 		data = list(
 			picks.values(
+				'id',
 				'overall_pick',
 				'pick_number',
 				'contract__id',
 				'pick__round_number',
 				'pick__current_team',
+				'is_pick_made',
+				'pick_made_at',
+				'is_current',
+				'is_auto_pick',
 			)
 		)
 
-		for pick in data:
-			pick['contract__id'] = (
+		for pick, pick_obj in zip(data, picks):
+			pick['contract'] = (
 				django_obj_to_dict(Contract.objects.get(id=pick['contract__id']))
 				if pick['contract__id']
 				else None
 			)
+			del pick['contract__id']
+
+			pick['time_to_pick'] = pick_obj.time_left_to_pick()
+
+			pick['player'] = (
+				PlayerSerializer(pick_obj.selected_player).data if pick_obj.selected_player else None
+			)
+
 
 		return Response({'picks': data})
 
 	except Draft.DoesNotExist:
 		return Response({'error': 'Draft not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def make_pick(request, pk):
+	"""
+	Make a pick for the draft with the given primary key (pk).
+	Only authenticated users can access this endpoint.
+	"""
+	if not request.user.is_authenticated:
+		return Response(
+			{'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED
+		)
+
+	try:
+		pick = DraftPick.objects.get(pk=pk)
+
+		if pick.is_pick_made:
+			return Response(
+				{'error': 'Pick already made'}, status=status.HTTP_400_BAD_REQUEST
+			)
+
+		if pick.pick.current_team != request.user.team:
+			return Response(
+				{'error': 'You cannot make a pick for this team'},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		player_id = request.data.get('player_id')
+
+		if not player_id:
+			return Response(
+				{'error': 'player_id is required'}, status=status.HTTP_400_BAD_REQUEST
+			)
+
+		pick.make_pick(Player.objects.get(id=player_id))
+
+		return Response(
+			DraftPositionSerializer(pick).data, status=status.HTTP_201_CREATED
+		)
+
+	except Draft.DoesNotExist:
+		return Response({'error': 'Draft not found'}, status=status.HTTP_404_NOT_FOUND)
+
+	except DraftPick.DoesNotExist:
+		return Response(
+			{'error': 'Draft position not found'}, status=status.HTTP_404_NOT_FOUND
+		)

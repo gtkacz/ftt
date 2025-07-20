@@ -27,18 +27,18 @@ urlpatterns = [
 		name='draft-position-detail',
 	),
 	path(
-		'draft-positions/<int:position_id>/pick/',
-		views.make_draft_pick,
-		name='make-draft-pick',
-	),
-	path(
-		'drafts/<int:pk>/lottery/',
-		views.lottery_view,
+		'drafts/<int:pk>/picks/',
+		views.draft_picks_view,
 		name='lottery',
 	),
 	path(
 		'drafts/<int:pk>/lottery/start/',
 		views.start_lottery_view,
 		name='start-lottery',
+	),
+	path(
+		'drafts/make-pick/<int:pk>/',
+		views.make_pick,
+		name='make-pick',
 	),
 ]

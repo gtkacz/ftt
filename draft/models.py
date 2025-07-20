@@ -70,15 +70,13 @@ class Draft(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
-	def current_player_pool(self) -> models.QuerySet:
+	def current_player_pool(self) -> models.QuerySet[Player]:
 		"""Returns the list of players still available for drafting"""
-		return self.draftable_players.filter(
-			is_active=True, contract__isnull=True
-		).order_by('name')
+		return self.draftable_players.filter(contract__isnull=True)
 
-	def drafted_players(self) -> models.QuerySet:
+	def drafted_players(self) -> models.QuerySet[Player]:
 		"""Returns the list of players that have been drafted in this draft"""
-		return self.draftable_players.filter(contract__isnull=False).order_by('name')
+		return self.draftable_players.filter(contract__isnull=False)
 
 	def generate_draft_order(self) -> list[int]:
 		"""Generates a snake draft order based on the list of teams"""
@@ -180,6 +178,8 @@ class DraftPick(models.Model):
 	)
 	is_pick_made = models.BooleanField(default=False)
 	pick_made_at = models.DateTimeField(null=True, blank=True)
+	is_current = models.BooleanField(default=False)
+	is_auto_pick = models.BooleanField(default=False)
 	contract = models.OneToOneField(
 		Contract,
 		on_delete=models.SET_NULL,
@@ -305,7 +305,7 @@ class DraftPick(models.Model):
 
 	def time_left_to_pick(self) -> int:
 		"""Calculates the time left for the current pick in seconds"""
-		if not self.started_at:
+		if not self.started_at or not self.is_current:
 			return self.draft.time_limit_per_pick * 60  # Convert minutes to seconds
 
 		now = timezone.now()
@@ -347,6 +347,70 @@ class DraftPick(models.Model):
 
 		return total_seconds
 
+	def make_pick(self, player: Player):
+		"""Make a pick for the draft position"""
+		if not player or not self.contract or not self.pick or not self.draft:
+			raise ValueError('Invalid pick')
+
+		if self.is_pick_made:
+			raise ValueError('Pick has already been made')
+
+		if not self.draft.current_player_pool().filter(id=player.id).exists():
+			raise ValueError('Player is not available for drafting')
+
+		if not self.is_current:
+			raise ValueError('Draft pick is not current')
+
+		if self.time_left_to_pick() <= 0:
+			from json import loads
+
+			self.is_auto_pick = True
+
+			players = self.draft.current_player_pool().values('id', 'metadata')
+			players = [
+				{**loads(player['metadata']), 'id': player['id']} for player in players
+			]
+
+			_player = max(
+				players,
+				key=lambda p: p.get('PTS', 0)
+				+ p.get('REB', 0)
+				+ p.get('AST', 0),
+			)
+			player = Player.objects.get(id=_player['id'])
+
+			print(f'Auto-picking player {player.nba_id} for pick {self.overall_pick}')
+
+		next_pick = self.draft.draft_positions.filter(
+			overall_pick=self.overall_pick + 1
+		).first()
+
+		with transaction.atomic():
+			self.selected_player = player
+			self.is_pick_made = True
+			self.pick_made_at = timezone.now()
+			self.is_current = False
+
+			self.contract.player = player
+			self.contract.team = self.pick.current_team
+
+			self.save()
+			self.contract.save()
+
+			if next_pick:
+				next_pick.is_current = True
+				next_pick.started_at = timezone.now()
+				next_pick.save()
+
+		return self.selected_player
+
 	class Meta:
 		ordering = ['draft', 'pick']
 		unique_together = ['draft', 'pick']
+		constraints = [
+			models.UniqueConstraint(
+				fields=['draft'],
+				condition=models.Q(is_current=1),
+				name='only_one_current_pick_per_draft',
+			)
+		]
