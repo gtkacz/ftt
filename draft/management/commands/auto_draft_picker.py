@@ -17,7 +17,7 @@ class Command(BaseCommand):
 			'--verbose',
 			action='store_true',
 			help='Enable verbose logging',
-			default=True
+			default=True,
 		)
 
 	def handle(self, *args, **options):
