@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('core', '0016_alter_contract_player'),
+	]
 
-    dependencies = [
-        ('core', '0016_alter_contract_player'),
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='player',
-            name='slug',
-            field=models.SlugField(blank=True, max_length=100, null=True, unique=True),
-        ),
-    ]
+	operations = [
+		migrations.AddField(
+			model_name='player',
+			name='slug',
+			field=models.SlugField(blank=True, max_length=100, null=True, unique=True),
+		),
+	]

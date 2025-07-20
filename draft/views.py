@@ -8,7 +8,8 @@ from core.serializers import PlayerSerializer
 from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
-from .serializers import DraftPositionSerializer, DraftSerializer, PickSerializer
+from .serializers import (DraftPositionSerializer, DraftSerializer,
+                          PickSerializer)
 
 
 class PickListCreateView(generics.ListCreateAPIView):
@@ -177,9 +178,10 @@ def draft_picks_view(request, pk):
 			pick['time_to_pick'] = pick_obj.time_left_to_pick()
 
 			pick['player'] = (
-				PlayerSerializer(pick_obj.selected_player).data if pick_obj.selected_player else None
+				PlayerSerializer(pick_obj.selected_player).data
+				if pick_obj.selected_player
+				else None
 			)
-
 
 		return Response({'picks': data})
 

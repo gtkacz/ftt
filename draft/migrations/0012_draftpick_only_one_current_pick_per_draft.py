@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('core', '0017_player_slug'),
+		('draft', '0011_draftpick_is_current_and_more'),
+	]
 
-    dependencies = [
-        ('core', '0017_player_slug'),
-        ('draft', '0011_draftpick_is_current_and_more'),
-    ]
-
-    operations = [
-        migrations.AddConstraint(
-            model_name='draftpick',
-            constraint=models.UniqueConstraint(condition=models.Q(('is_current', 1)), fields=('draft',), name='only_one_current_pick_per_draft'),
-        ),
-    ]
+	operations = [
+		migrations.AddConstraint(
+			model_name='draftpick',
+			constraint=models.UniqueConstraint(
+				condition=models.Q(('is_current', 1)),
+				fields=('draft',),
+				name='only_one_current_pick_per_draft',
+			),
+		),
+	]

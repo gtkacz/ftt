@@ -347,20 +347,8 @@ class DraftPick(models.Model):
 
 		return total_seconds
 
-	def make_pick(self, player: Player):
+	def make_pick(self, player: Player | None) -> Player:
 		"""Make a pick for the draft position"""
-		if not player or not self.contract or not self.pick or not self.draft:
-			raise ValueError('Invalid pick')
-
-		if self.is_pick_made:
-			raise ValueError('Pick has already been made')
-
-		if not self.draft.current_player_pool().filter(id=player.id).exists():
-			raise ValueError('Player is not available for drafting')
-
-		if not self.is_current:
-			raise ValueError('Draft pick is not current')
-
 		if self.time_left_to_pick() <= 0:
 			from json import loads
 
@@ -373,13 +361,23 @@ class DraftPick(models.Model):
 
 			_player = max(
 				players,
-				key=lambda p: p.get('PTS', 0)
-				+ p.get('REB', 0)
-				+ p.get('AST', 0),
+				key=lambda p: p.get('PTS', 0) + p.get('REB', 0) + p.get('AST', 0),
 			)
 			player = Player.objects.get(id=_player['id'])
 
 			print(f'Auto-picking player {player.nba_id} for pick {self.overall_pick}')
+
+		if not player or not self.contract or not self.pick or not self.draft:
+			raise ValueError('Invalid pick')
+
+		if self.is_pick_made:
+			raise ValueError('Pick has already been made')
+
+		if not self.draft.current_player_pool().filter(id=player.id).exists():
+			raise ValueError('Player is not available for drafting')
+
+		if not self.is_current:
+			raise ValueError('Draft pick is not current')
 
 		next_pick = self.draft.draft_positions.filter(
 			overall_pick=self.overall_pick + 1

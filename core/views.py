@@ -9,13 +9,9 @@ from draft.models import Pick
 from draft.serializers import PickSerializer
 
 from .models import Player, Team, User
-from .serializers import (
-	PlayerSerializer,
-	TeamSerializer,
-	UserRegistrationSerializer,
-	UserSerializer,
-	UserUpdateSerializer,
-)
+from .serializers import (PlayerSerializer, TeamSerializer,
+                          UserRegistrationSerializer, UserSerializer,
+                          UserUpdateSerializer)
 
 
 class UserRegistrationView(generics.CreateAPIView):

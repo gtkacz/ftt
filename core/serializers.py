@@ -32,6 +32,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		user.save()
 		return user
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(
 		write_only=True,
