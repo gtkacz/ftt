@@ -322,6 +322,15 @@ class DraftPick(models.Model):
 
 		return round((deadline - now).total_seconds())
 
+	def can_pick_until(self) -> datetime:
+		"""Calculates the datetime until which the pick can be made"""
+		if not self.started_at or not self.is_current:
+			return timezone.now() + timedelta(minutes=self.draft.time_limit_per_pick)
+
+		return self._calculate_pick_deadline(
+			self.started_at, self.draft.time_limit_per_pick
+		)
+
 	def _calculate_pick_deadline(
 		self, start_time: datetime, limit_minutes: int
 	) -> datetime:
