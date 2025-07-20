@@ -1,3 +1,4 @@
+from datetime import datetime, time, timedelta
 from random import shuffle
 
 from django.db import models, transaction
@@ -135,6 +136,7 @@ class Draft(models.Model):
 						pick=current_pick,
 						pick_number=pick_num,
 						overall_pick=overall_pick,
+						is_current=(overall_pick == 1),
 					)
 
 					current_contract = draft_pick.generate_contract()
@@ -308,16 +310,81 @@ class DraftPick(models.Model):
 		if not self.started_at or not self.is_current:
 			return self.draft.time_limit_per_pick * 60  # Convert minutes to seconds
 
+		# Calculate when the pick deadline will be
+		deadline = self._calculate_pick_deadline(
+			self.started_at, self.draft.time_limit_per_pick
+		)
+
+		# Return seconds between now and the deadline
+		now = timezone.now()
+		if now >= deadline:
+			return 0
+
+		return round((deadline - now).total_seconds())
+
+	def _calculate_pick_deadline(
+		self, start_time: datetime, limit_minutes: int
+	) -> datetime:
+		"""Calculate when the pick deadline will be, accounting for active hours"""
+		lower_bound = self.draft.pick_hour_lower_bound
+		upper_bound = self.draft.pick_hour_upper_bound
+
+		remaining_seconds = limit_minutes * 60
+		current_time = start_time
+
+		while remaining_seconds > 0:
+			current_date = current_time.date()
+
+			# Create the active window for current date
+			window_start = timezone.make_aware(
+				datetime.combine(current_date, time(lower_bound, 0))
+			)
+			window_end = timezone.make_aware(
+				datetime.combine(current_date, time(upper_bound, 0))
+			)
+
+			# If we're before the window, jump to window start
+			if current_time < window_start:
+				current_time = window_start
+			# If we're after the window, jump to next day's window start
+			elif current_time >= window_end:
+				next_date = current_date + timedelta(days=1)
+				current_time = timezone.make_aware(
+					datetime.combine(next_date, time(lower_bound, 0))
+				)
+				continue
+
+			# Calculate how much time we can use in this window
+			time_until_window_end = (window_end - current_time).total_seconds()
+
+			if remaining_seconds <= time_until_window_end:
+				# We can finish within this window
+				return current_time + timedelta(seconds=remaining_seconds)
+			else:
+				# Use up this window and continue to next day
+				remaining_seconds -= time_until_window_end
+				next_date = current_date + timedelta(days=1)
+				current_time = timezone.make_aware(
+					datetime.combine(next_date, time(lower_bound, 0))
+				)
+
+		return current_time
+
+	def remaining_seconds(self) -> int:
+		"""Calculates the time left for the current pick in seconds"""
+		if not self.started_at or not self.is_current:
+			return self.draft.time_limit_per_pick * 60  # Convert minutes to seconds
+
 		now = timezone.now()
 		total_limit_seconds = self.draft.time_limit_per_pick * 60
 		elapsed_active_seconds = self._get_elapsed_active_seconds(self.started_at, now)
 
 		return max(0, total_limit_seconds - elapsed_active_seconds)
 
-	def _get_elapsed_active_seconds(self, start_time, end_time):
+	def _get_elapsed_active_seconds(
+		self, start_time: datetime, end_time: datetime
+	) -> int:
 		"""Calculate active seconds elapsed between start_time and end_time"""
-		from datetime import datetime, time, timedelta
-
 		if start_time >= end_time:
 			return 0
 
@@ -345,7 +412,7 @@ class DraftPick(models.Model):
 
 			current_date += timedelta(days=1)
 
-		return total_seconds
+		return round(total_seconds)
 
 	def make_pick(self, player: Player | None) -> Player:
 		"""Make a pick for the draft position"""
