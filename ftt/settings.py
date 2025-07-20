@@ -223,3 +223,22 @@ LEAGUE_SETTINGS = Box(
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGGING = {
+	'version': 1,
+	'disable_existing_loggers': False,
+	'handlers': {
+		'file': {
+			'level': 'INFO',
+			'class': 'logging.FileHandler',
+			'filename': 'auto_draft.log',
+		},
+	},
+	'loggers': {
+		'draft.management.commands.auto_draft_picker': {
+			'handlers': ['file'],
+			'level': 'INFO',
+			'propagate': True,
+		},
+	},
+}
