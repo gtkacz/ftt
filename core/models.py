@@ -39,11 +39,15 @@ class Team(models.Model):
 	def __str__(self):
 		return self.name
 
+	@property
+	def players(self) -> models.QuerySet['Player']:
+		return Player.objects.filter(contract__team=self)
+
 	def total_salary(self) -> float:
-		return sum(player.salary for player in self.players.all())
+		return sum(player.contract.salary for player in self.players.filter(is_ir=False))
 
 	def total_players(self) -> int:
-		return self.players.count()
+		return self.players.filter(is_ir=False).count()
 
 	def available_salary(self) -> float:
 		return LEAGUE_SETTINGS.SALARY_CAP - self.total_salary()
@@ -61,7 +65,7 @@ class Team(models.Model):
 class NBATeam(models.Model):
 	city = models.CharField(max_length=100)
 	name = models.CharField(max_length=100)
-	abbreviation = models.CharField(max_length=10)
+	abbreviation = models.CharField(max_length=3, unique=True)
 
 	def __str__(self):
 		return f'{self.city} {self.name} ({self.abbreviation})'
@@ -76,9 +80,6 @@ class Player(models.Model):
 
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)
-	team = models.ForeignKey(
-		Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='players'
-	)
 	primary_position = models.CharField(max_length=1, choices=POSITION_CHOICES)
 	secondary_position = models.CharField(
 		max_length=1, choices=POSITION_CHOICES, null=True, blank=True

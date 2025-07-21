@@ -142,6 +142,16 @@ class PlayerSerializer(serializers.ModelSerializer):
 		read_only=True,
 		help_text='Relevancy score of the player based on performance metrics',
 	)
+	team = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Team information for the player, if they are part of a team',
+	)
+
+	def get_team(self, obj: Player) -> dict:
+		if hasattr(obj, 'contract'):
+			return TeamSerializer(obj.contract.team).data
+
+		return {}
 
 	def get_real_team(self, obj: Player) -> str:
 		if obj.real_team:

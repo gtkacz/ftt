@@ -471,8 +471,11 @@ class DraftPick(models.Model):
 			self.contract.player = player
 			self.contract.team = self.pick.current_team
 
+			self.draft.draftable_players.remove(player)
+
 			self.save()
 			self.contract.save()
+			self.draft.save()
 
 			if next_pick:
 				next_pick.is_current = True

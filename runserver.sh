@@ -66,18 +66,39 @@ is_lt_running() {
 # Function to monitor output for errors
 monitor_output() {
     local lt_pid=$1
+    local url_found=false
+    local line_count=0
+    local max_lines_before_url=20  # Maximum lines to wait for URL
     
     while IFS= read -r line; do
         echo "$line"
+        ((line_count++))
+        
+        # Check for successful URL output
+        if echo "$line" | grep -i "your url is:" > /dev/null; then
+            url_found=true
+            log_message "URL successfully obtained: $line"
+        fi
         
         # Check for error patterns in the output
         if echo "$line" | grep -E "(Error:|throw err|UnhandledPromiseRejection|ECONNREFUSED|connection refused|got socket error|tunnel server offline|check your firewall settings|ENOTFOUND|socket hang up)" > /dev/null; then
             log_message "Error detected in output: $line"
             return 1
         fi
+        
+        # If we've seen enough lines without the URL, consider it a failure
+        if [[ "$url_found" == "false" ]] && [[ $line_count -ge $max_lines_before_url ]]; then
+            log_message "URL not found after $line_count lines of output. Restarting..."
+            return 1
+        fi
     done
     
-    # If we reach here, the process ended without error output
+    # If we reach here, the process ended
+    if [[ "$url_found" == "false" ]]; then
+        log_message "Localtunnel process ended without providing URL"
+        return 1
+    fi
+    
     log_message "Localtunnel process output ended"
     return 1
 }
@@ -101,6 +122,16 @@ start_localtunnel() {
     fi
     
     log_message "Localtunnel started with PID: $LT_PID, Monitor PID: $MONITOR_PID"
+    
+    # Give it a moment to check for immediate failures
+    sleep 3
+    
+    # Check if monitor is still running (it would exit if URL check failed)
+    if [[ -n "$MONITOR_PID" ]] && ! kill -0 "$MONITOR_PID" 2>/dev/null; then
+        log_message "Monitor process exited early (likely no URL found)"
+        return 1
+    fi
+    
     return 0
 }
 
@@ -141,6 +172,7 @@ run_localtunnel() {
         if ! start_localtunnel; then
             log_message "Failed to start localtunnel, retrying in 5 seconds..."
             sleep 5
+            cleanup_and_restart
             continue
         fi
         
