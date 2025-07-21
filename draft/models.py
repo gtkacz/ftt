@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 from random import shuffle
+from zoneinfo import ZoneInfo
 
 from django.db import models, transaction
 from django.utils import timezone
@@ -337,6 +338,7 @@ class DraftPick(models.Model):
 		"""Calculate when the pick deadline will be, accounting for active hours"""
 		lower_bound = self.draft.pick_hour_lower_bound
 		upper_bound = self.draft.pick_hour_upper_bound
+		app_timezone = ZoneInfo(str(timezone.get_current_timezone()))
 
 		remaining_seconds = limit_minutes * 60
 		current_time = start_time
@@ -344,13 +346,12 @@ class DraftPick(models.Model):
 		while remaining_seconds > 0:
 			current_date = current_time.date()
 
-			# Create the active window for current date
-			window_start = timezone.make_aware(
-				datetime.combine(current_date, time(lower_bound, 0))
-			)
-			window_end = timezone.make_aware(
-				datetime.combine(current_date, time(upper_bound, 0))
-			)
+			# Create the active window for current date using app timezone
+			window_start = datetime.combine(current_date, time(lower_bound, 0))
+			window_start = window_start.astimezone(app_timezone)
+
+			window_end = datetime.combine(current_date, time(upper_bound, 0))
+			window_end = window_end.astimezone(app_timezone)
 
 			# If we're before the window, jump to window start
 			if current_time < window_start:
@@ -358,9 +359,8 @@ class DraftPick(models.Model):
 			# If we're after the window, jump to next day's window start
 			elif current_time >= window_end:
 				next_date = current_date + timedelta(days=1)
-				current_time = timezone.make_aware(
-					datetime.combine(next_date, time(lower_bound, 0))
-				)
+				next_window_start = datetime.combine(next_date, time(lower_bound, 0))
+				current_time = next_window_start.astimezone(app_timezone)
 				continue
 
 			# Calculate how much time we can use in this window
@@ -373,9 +373,8 @@ class DraftPick(models.Model):
 				# Use up this window and continue to next day
 				remaining_seconds -= time_until_window_end
 				next_date = current_date + timedelta(days=1)
-				current_time = timezone.make_aware(
-					datetime.combine(next_date, time(lower_bound, 0))
-				)
+				next_window_start = datetime.combine(next_date, time(lower_bound, 0))
+				current_time = next_window_start.astimezone(app_timezone)
 
 		return current_time
 
@@ -399,18 +398,18 @@ class DraftPick(models.Model):
 
 		lower_bound = self.draft.pick_hour_lower_bound
 		upper_bound = self.draft.pick_hour_upper_bound
+		app_timezone = ZoneInfo(str(timezone.get_current_timezone()))
 
 		total_seconds = 0
 		current_date = start_time.date()
 
 		while current_date <= end_time.date():
-			# Create the active window for this date
-			window_start = timezone.make_aware(
-				datetime.combine(current_date, time(lower_bound, 0))
-			)
-			window_end = timezone.make_aware(
-				datetime.combine(current_date, time(upper_bound, 0))
-			)
+			# Create the active window for this date using app timezone
+			window_start = datetime.combine(current_date, time(lower_bound, 0))
+			window_start = window_start.astimezone(app_timezone)
+
+			window_end = datetime.combine(current_date, time(upper_bound, 0))
+			window_end = window_end.astimezone(app_timezone)
 
 			# Find intersection with our time range
 			range_start = max(start_time, window_start)
