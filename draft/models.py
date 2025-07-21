@@ -430,7 +430,11 @@ class DraftPick(models.Model):
 
 			self.is_auto_pick = True
 
-			players = self.draft.current_player_pool().values('id', 'metadata')
+			players = (
+				self.draft.current_player_pool()
+				.filter(real_team__isnull=False)
+				.values('id', 'metadata')
+			)
 			players = [
 				{**loads(player['metadata']), 'id': player['id']} for player in players
 			]
