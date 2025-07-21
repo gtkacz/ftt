@@ -19,7 +19,9 @@ from django.core.management.utils import get_random_secret_key
 from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
+# Load environment variables from .env file
 load_dotenv()
+ENV = Box(environ)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,7 +34,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = environ.get('ENVIRONMENT') == 'development'
+DEBUG = ENV.ENVIRONMENT == 'development'
 
 ALLOWED_HOSTS = ['*']
 
@@ -202,6 +204,8 @@ SIMPLE_JWT = {
 	'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
 	'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 	'ROTATE_REFRESH_TOKENS': True,
+	'UPDATE_LAST_LOGIN': True,
+	'SIGNING_KEY': get_random_secret_key(),
 }
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
@@ -216,9 +220,9 @@ CORS_ALLOW_HEADERS = (
 
 LEAGUE_SETTINGS = Box(
 	{
-		'SALARY_CAP': int(environ.get('SALARY_CAP', 130)),
-		'MIN_PLAYER_CAP': int(environ.get('MIN_PLAYER_CAP', 13)),
-		'MAX_PLAYER_CAP': int(environ.get('MAX_PLAYER_CAP', 15)),
+		'SALARY_CAP': int(ENV.SALARY_CAP),
+		'MIN_PLAYER_CAP': int(ENV.MIN_PLAYER_CAP),
+		'MAX_PLAYER_CAP': int(ENV.MAX_PLAYER_CAP),
 	}
 )
 
