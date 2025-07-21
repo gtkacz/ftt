@@ -8,8 +8,7 @@ from core.serializers import PlayerSerializer
 from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
-from .serializers import (DraftPositionSerializer, DraftSerializer,
-                          PickSerializer)
+from .serializers import DraftPositionSerializer, DraftSerializer, PickSerializer
 
 
 class PickListCreateView(generics.ListCreateAPIView):
