@@ -28,7 +28,11 @@ urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('api/', include('core.urls')),
 	path('api/', include('draft.urls')),
-	path('api/healthcheck/', HealthCheckViewSet.as_view({'get': 'list'}), name='healthcheck'),
+	path(
+		'api/healthcheck/',
+		HealthCheckViewSet.as_view({'get': 'list'}),
+		name='healthcheck',
+	),
 	# OpenAPI schema endpoints
 	path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
 	path(

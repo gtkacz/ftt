@@ -9,7 +9,7 @@ CURL_TIMEOUT=5
 
 # Color codes for different log levels
 declare -A LOG_COLORS=(
-    ["debug"]=""
+    ["debug"]="\033[2;90m"
     ["info"]="\033[34m"
     ["warning"]="\033[33m"
     ["error"]="\033[91m"

@@ -91,6 +91,8 @@ sqlparse==0.5.3
     # via django
 tzdata==2025.2
     # via pandas
+unidecode==1.4.0
+    # via -r requirements.in
 uritemplate==4.2.0
     # via drf-spectacular
 urllib3==2.5.0

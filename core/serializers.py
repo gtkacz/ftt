@@ -201,9 +201,12 @@ class PlayerSerializer(serializers.ModelSerializer):
 			metadata = loads(obj.metadata.lower().replace('nan', 'null'))
 
 			return round(
-				float(metadata.get('pts', 0.0))
-				+ float(metadata.get('ast', 0.0))
-				+ float(metadata.get('reb', 0.0)),
+				float(metadata.get('fpts', 0.0))
+				or (
+					float(metadata.get('pts', 0.0))
+					+ float(metadata.get('ast', 0.0))
+					+ float(metadata.get('reb', 0.0))
+				),
 				1,
 			)
 		except Exception:

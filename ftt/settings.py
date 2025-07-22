@@ -15,8 +15,8 @@ from os import environ, path
 from pathlib import Path
 
 from box import Box
-from django.core.management.utils import get_random_secret_key
 from corsheaders.defaults import default_headers
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 # Load environment variables from .env file

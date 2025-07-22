@@ -140,6 +140,8 @@ tzdata==2025.2
     # via
     #   -r requirements.txt
     #   pandas
+unidecode==1.4.0
+    # via -r requirements.txt
 uritemplate==4.2.0
     # via
     #   -r requirements.txt

@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('core', '0017_player_slug'),
+	]
 
-    dependencies = [
-        ('core', '0017_player_slug'),
-    ]
-
-    operations = [
-        migrations.RemoveField(
-            model_name='player',
-            name='team',
-        ),
-        migrations.AlterField(
-            model_name='nbateam',
-            name='abbreviation',
-            field=models.CharField(max_length=3, unique=True),
-        ),
-    ]
+	operations = [
+		migrations.RemoveField(
+			model_name='player',
+			name='team',
+		),
+		migrations.AlterField(
+			model_name='nbateam',
+			name='abbreviation',
+			field=models.CharField(max_length=3, unique=True),
+		),
+	]
