@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ftt.common.util import django_obj_to_dict
 
-from .models import NBATeam, Player, Team, User
+from .models import Contract, NBATeam, Player, Team, User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -126,6 +126,18 @@ class UserSerializer(serializers.ModelSerializer):
 		read_only_fields = ['id', 'date_joined']
 
 
+class ContractSerializer(serializers.ModelSerializer):
+	team = TeamSerializer(
+		read_only=True,
+		help_text='Team information for the contract, if applicable',
+	)
+
+	class Meta:
+		model = Contract
+		fields = '__all__'
+		read_only_fields = ['id', 'created_at', 'team']
+
+
 class PlayerSerializer(serializers.ModelSerializer):
 	team_name = serializers.CharField(
 		source='team.name',
@@ -142,10 +154,20 @@ class PlayerSerializer(serializers.ModelSerializer):
 		read_only=True,
 		help_text='Relevancy score of the player based on performance metrics',
 	)
+	contract = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Contract information for the player, if they are part of a team',
+	)
 	team = serializers.SerializerMethodField(
 		read_only=True,
 		help_text='Team information for the player, if they are part of a team',
 	)
+
+	def get_contract(self, obj: Player) -> dict:
+		if hasattr(obj, 'contract'):
+			return ContractSerializer(obj.contract).data
+
+		return {}
 
 	def get_team(self, obj: Player) -> dict:
 		if hasattr(obj, 'contract'):
