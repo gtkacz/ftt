@@ -22,10 +22,13 @@ from django.urls import include, path
 from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
                                    SpectacularSwaggerView)
 
+from ftt.views import HealthCheckViewSet
+
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('api/', include('core.urls')),
 	path('api/', include('draft.urls')),
+	path('api/healthcheck/', HealthCheckViewSet.as_view({'get': 'list'}), name='healthcheck'),
 	# OpenAPI schema endpoints
 	path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
 	path(

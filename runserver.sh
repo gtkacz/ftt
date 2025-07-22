@@ -68,7 +68,7 @@ is_lt_running() {
 
 # Function to perform health check
 health_check_loop() {
-    local url="https://${SUBDOMAIN}.loca.lt"
+    local url="https://${SUBDOMAIN}.loca.lt/api/healthcheck/"
     
     while true; do
         sleep 10
