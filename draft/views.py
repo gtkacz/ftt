@@ -5,11 +5,12 @@ from rest_framework.response import Response
 
 from core.models import Contract, Player
 from core.serializers import PlayerSerializer
+from draft.serializers.draft import DraftSerializer
+from draft.serializers.draft_pick import DraftPositionSerializer
+from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
 from .models import Draft, DraftPick, Pick
-from .serializers import (DraftPositionSerializer, DraftSerializer,
-                          PickSerializer)
 
 
 class PickListCreateView(generics.ListCreateAPIView):
@@ -208,7 +209,11 @@ def make_pick(request, pk):
 				{'error': 'Pick already made'}, status=status.HTTP_400_BAD_REQUEST
 			)
 
-		if pick.pick.current_team != request.user.team and not request.user.is_staff and not request.user.is_superuser:
+		if (
+			pick.pick.current_team != request.user.team
+			and not request.user.is_staff
+			and not request.user.is_superuser
+		):
 			return Response(
 				{'error': 'You cannot make a pick for this team'},
 				status=status.HTTP_403_FORBIDDEN,

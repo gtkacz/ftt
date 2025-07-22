@@ -32,7 +32,7 @@ class Notification(models.Model):
 class Team(models.Model):
 	name = models.CharField(max_length=100)
 	owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='team')
-	avatar = models.ImageField(upload_to='team_avatars/', null=True, blank=True)
+	# avatar = models.ImageField(upload_to='team_avatars/', null=True, blank=True, default='team_avatars/logo.png')
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

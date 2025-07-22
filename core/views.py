@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from draft.models import Pick
-from draft.serializers import PickSerializer
+from draft.serializers.pick import PickSerializer
 
 from .models import Player, Team, User
 from .serializers import (PlayerSerializer, TeamSerializer,

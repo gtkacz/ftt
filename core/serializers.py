@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
 from .models import Contract, NBATeam, Player, Team, User
@@ -92,6 +93,14 @@ class TeamSerializer(serializers.ModelSerializer):
 	can_bid = serializers.SerializerMethodField(
 		help_text='Whether the team can bid on players based on current roster and salary cap'
 	)
+	players = serializers.SerializerMethodField(
+		help_text='List of players currently on the team',
+	)
+	current_picks = PickSerializer(
+		many=True,
+		read_only=True,
+		help_text='List of draft picks owned by the team',
+	)
 
 	class Meta:
 		model = Team
@@ -112,6 +121,9 @@ class TeamSerializer(serializers.ModelSerializer):
 
 	def get_can_bid(self, obj: Team) -> bool:
 		return obj.can_bid()
+
+	def get_players(self, obj: Team) -> list:
+		return SimplePlayerSerializer(obj.players.all(), many=True).data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -138,7 +150,87 @@ class ContractSerializer(serializers.ModelSerializer):
 		read_only_fields = ['id', 'created_at', 'team']
 
 
-class PlayerSerializer(serializers.ModelSerializer):
+class SimplePlayerSerializer(serializers.ModelSerializer):
+	team_name = serializers.CharField(
+		source='team.name',
+		read_only=True,
+		help_text='Name of the team this player belongs to',
+	)
+	photo = serializers.SerializerMethodField(
+		help_text='URL to the player photo, if available'
+	)
+	real_team = serializers.SerializerMethodField(
+		help_text='Real NBA team this player is associated with, if any'
+	)
+	relevancy = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Relevancy score of the player based on performance metrics',
+	)
+	contract = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Contract information for the player, if they are part of a team',
+	)
+	team = serializers.SerializerMethodField(
+		read_only=True,
+		help_text='Team information for the player, if they are part of a team',
+	)
+
+	def get_contract(self, obj: Player) -> dict:
+		if hasattr(obj, 'contract'):
+			return django_obj_to_dict(obj.contract)
+
+		return {}
+
+	def get_team(self, obj: Player) -> dict:
+		if hasattr(obj, 'contract'):
+			return django_obj_to_dict(obj.contract.team)
+
+		return {}
+
+	def get_real_team(self, obj: Player) -> str:
+		if obj.real_team:
+			return django_obj_to_dict(obj.real_team)
+		return ''
+
+	def get_photo(self, obj: Player) -> str:
+		if obj.nba_id:
+			return f'https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png'
+		return ''
+
+	def get_relevancy(self, obj: Player) -> float:
+		try:
+			from json import loads
+
+			if (
+				not obj
+				or not obj.metadata
+				or not isinstance(obj.metadata, str)
+				or not obj.metadata.strip()
+				or obj.metadata == 'null'
+			):
+				return 0.0
+
+			metadata = loads(obj.metadata.lower().replace('nan', 'null'))
+
+			return round(
+				float(metadata.get('fpts', 0.0))
+				or (
+					float(metadata.get('pts', 0.0))
+					+ float(metadata.get('ast', 0.0))
+					+ float(metadata.get('reb', 0.0))
+				),
+				1,
+			)
+		except Exception:
+			return 0.0
+
+	class Meta:
+		model = Player
+		fields = '__all__'
+		read_only_fields = ['id', 'created_at']
+
+
+class PlayerSerializer(SimplePlayerSerializer):
 	team_name = serializers.CharField(
 		source='team.name',
 		read_only=True,
