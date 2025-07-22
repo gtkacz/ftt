@@ -44,7 +44,9 @@ class Team(models.Model):
 		return Player.objects.filter(contract__team=self)
 
 	def total_salary(self) -> float:
-		return sum(player.contract.salary for player in self.players.filter(is_ir=False))
+		return sum(
+			player.contract.salary for player in self.players.filter(is_ir=False)
+		)
 
 	def total_players(self) -> int:
 		return self.players.filter(is_ir=False).count()
