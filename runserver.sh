@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration
-SUBDOMAIN="your-subdomain"
-PORT="3000"
+SUBDOMAIN="ftt-backend-api"
+PORT="8000"
 LOG_FILE="lt_monitor.log"
 HEALTH_CHECK_INTERVAL=10
 CURL_TIMEOUT=5
