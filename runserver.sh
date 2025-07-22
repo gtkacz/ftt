@@ -2,10 +2,12 @@
 
 # Configuration
 SUBDOMAIN="ftt-backend-api"
+ORIGINAL_SUBDOMAIN="$SUBDOMAIN"
 PORT="8000"
 LOG_FILE="lt_monitor.log"
 HEALTH_CHECK_INTERVAL=10
 CURL_TIMEOUT=5
+MAX_RESTART_ATTEMPTS=10
 
 # Color codes for different log levels
 declare -A LOG_COLORS=(
@@ -36,8 +38,9 @@ log_message() {
     echo "$formatted_message" >> "$LOG_FILE"
 }
 
-# Global variable for lt process PID
+# Global variables
 LT_PID=""
+RESTART_COUNT=0
 
 # Function to start the lt command
 start_lt() {
@@ -83,6 +86,22 @@ kill_lt() {
     LT_PID=""
 }
 
+# Function to handle restart attempt and backup subdomain logic
+handle_restart() {
+    RESTART_COUNT=$((RESTART_COUNT + 1))
+    log_message "Restart attempt #$RESTART_COUNT" "warning"
+    
+    if [[ $RESTART_COUNT -ge $MAX_RESTART_ATTEMPTS ]]; then
+        log_message "Maximum restart attempts ($MAX_RESTART_ATTEMPTS) reached, switching to backup subdomain" "critical"
+        SUBDOMAIN="${ORIGINAL_SUBDOMAIN}-backup"
+        RESTART_COUNT=0
+        log_message "Switched to backup subdomain: $SUBDOMAIN, restart count reset" "info"
+    fi
+    
+    kill_lt
+    start_lt
+}
+
 # Function to perform health check
 health_check() {
     local url="https://${SUBDOMAIN}.loca.lt/api/healthcheck/"
@@ -98,6 +117,11 @@ health_check() {
     
     if [[ "$response_code" == "200" ]]; then
         log_message "Health check passed (HTTP $response_code)" "debug"
+        # Reset restart count on successful health check
+        if [[ $RESTART_COUNT -gt 0 ]]; then
+            log_message "Health check successful, resetting restart count" "info"
+            RESTART_COUNT=0
+        fi
         return 0
     else
         log_message "Health check failed (HTTP $response_code)" "error"
@@ -118,7 +142,7 @@ trap cleanup SIGINT SIGTERM
 # Main monitoring loop
 main() {
     log_message "Starting LocalTunnel monitor script" "info"
-    log_message "Configuration: PORT=$PORT, SUBDOMAIN=$SUBDOMAIN" "info"
+    log_message "Configuration: PORT=$PORT, SUBDOMAIN=$SUBDOMAIN, MAX_RESTART_ATTEMPTS=$MAX_RESTART_ATTEMPTS" "info"
     
     while true; do
         # Start lt if not running
@@ -127,18 +151,17 @@ main() {
                 log_message "LocalTunnel process $LT_PID has died" "error"
             fi
             
-            kill_lt  # Clean up any orphaned processes
-            start_lt
+            handle_restart
             
             # Wait a bit for the tunnel to establish
             sleep 5
-        fi
-        
-        # Perform health check
-        if ! health_check; then
-            log_message "Health check failed, restarting localtunnel" "warning"
-            kill_lt
-            continue
+        else
+            # Perform health check only if process is running
+            if ! health_check; then
+                log_message "Health check failed, restarting localtunnel" "warning"
+                handle_restart
+                continue
+            fi
         fi
         
         # Wait before next health check
