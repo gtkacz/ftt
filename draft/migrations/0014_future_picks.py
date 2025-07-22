@@ -5,7 +5,7 @@ def data_migration(apps, schema_editor):
 	Team = apps.get_model('core', 'Team')
 	Pick = apps.get_model('draft', 'Pick')
 
-	for year in range(2026, 2028):
+	for year in range(2026, 2029):
 		for team in Team.objects.all():
 			for r in range(1, 3):
 				Pick.objects.get_or_create(
