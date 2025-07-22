@@ -7,7 +7,7 @@ PORT="8000"
 LOG_FILE="lt_monitor.log"
 HEALTH_CHECK_INTERVAL=10
 CURL_TIMEOUT=5
-MAX_RESTART_ATTEMPTS=10
+MAX_RESTART_ATTEMPTS=5
 
 # Color codes for different log levels
 declare -A LOG_COLORS=(
