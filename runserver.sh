@@ -68,7 +68,7 @@ monitor_output() {
     local lt_pid=$1
     local url_found=false
     local line_count=0
-    local max_lines_before_url=20  # Maximum lines to wait for URL
+    local max_lines_before_url=1  # Maximum lines to wait for URL
     
     while IFS= read -r line; do
         echo "$line"
