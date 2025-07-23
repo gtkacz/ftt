@@ -1,3 +1,4 @@
+from django.db import models, transaction
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
@@ -5,8 +6,11 @@ from rest_framework.response import Response
 
 from core.models import Contract, Player
 from core.serializers import PlayerSerializer
+from draft.models import DraftQueue
 from draft.serializers.draft import DraftSerializer
 from draft.serializers.draft_pick import DraftPositionSerializer
+from draft.serializers.draft_queue import (DraftQueueSerializer,
+                                           ReorderQueueSerializer)
 from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
@@ -239,3 +243,33 @@ def make_pick(request, pk):
 		return Response(
 			{'error': 'Draft position not found'}, status=status.HTTP_404_NOT_FOUND
 		)
+
+
+class DraftQueueListCreateView(generics.ListCreateAPIView):
+	serializer_class = DraftQueueSerializer
+
+	def get_queryset(self) -> models.QuerySet[DraftQueue]:
+		return DraftQueue.objects.filter(team__owner=self.request.user.id)
+
+
+@api_view(['POST'])
+def reorder_queue(request, queue_id):
+	"""Reorder the entire draft queue"""
+	try:
+		queue = DraftQueue.objects.get(id=queue_id, team__owner=request.user)
+		serializer = ReorderQueueSerializer(data=request.data)
+
+		if serializer.is_valid():
+			player_ids = serializer.validated_data['player_ids']
+
+			with transaction.atomic():
+				queue.queue_items.clear()
+				queue.queue_items = player_ids
+				queue.save()
+
+			return Response(DraftQueueSerializer(queue).data, status=status.HTTP_200_OK)
+
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	except DraftQueue.DoesNotExist:
+		return Response({'error': 'Queue not found'}, status=status.HTTP_404_NOT_FOUND)

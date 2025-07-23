@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+from json import dumps, loads
 from random import shuffle
 from zoneinfo import ZoneInfo
 
@@ -494,3 +495,53 @@ class DraftPick(models.Model):
 				name='only_one_current_pick_per_draft',
 			)
 		]
+
+
+class DraftQueue(models.Model):
+	"""Draft queue for a team in a specific draft"""
+
+	team = models.ForeignKey(
+		Team, on_delete=models.CASCADE, related_name='draft_queues'
+	)
+	draft = models.ForeignKey(
+		Draft, on_delete=models.CASCADE, related_name='team_queues'
+	)
+	autopick_enabled = models.BooleanField(
+		default=False, help_text='Enable auto-pick from queue'
+	)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	queue_items = models.JSONField(
+		default=list,
+		help_text='List of player IDs in the draft queue',
+		blank=True,
+		null=True,
+		editable=True,
+	)
+
+	class Meta:
+		unique_together = ['team', 'draft']
+
+	def __str__(self):
+		return f'{self.team.name} - {self.draft.year} Draft Queue'
+
+	def get_next_player(self) -> Player | None:
+		"""Get the next available player from the queue"""
+		if not self.queue_items:
+			return None
+
+		queue = loads(self.queue_items)
+
+		return Player.objects.filter(id=queue[0]).first() if self.queue_items else None
+
+	def remove_player(self, player: Player):
+		"""Remove a player from the queue and reorder"""
+		if not self.queue_items:
+			return None
+
+		queue = loads(self.queue_items)
+
+		queue.remove(player.id)
+
+		self.queue_items = dumps(queue)
+		self.save()

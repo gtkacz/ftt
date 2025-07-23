@@ -41,4 +41,14 @@ urlpatterns = [
 		views.make_pick,
 		name='make-pick',
 	),
+	path(
+		'draft/queues/',
+		views.DraftQueueListCreateView.as_view(),
+		name='draft-queue-list-create',
+	),
+	path(
+		'draft/queues/<int:pk>/reorder/',
+		views.reorder_queue,
+		name='reorder-draft-queue',
+	),
 ]
