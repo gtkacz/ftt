@@ -248,15 +248,16 @@ def make_pick(request, pk):
 class DraftQueueListCreateView(generics.ListCreateAPIView):
 	serializer_class = DraftQueueSerializer
 
-	def get_queryset(self) -> models.QuerySet[DraftQueue]:
-		return DraftQueue.objects.filter(team__owner=self.request.user.id)
-
+	def get_queryset(self):
+		"""Filter queryset based on the draft ID from the URL"""
+		draft_id = self.kwargs.get('pk')
+		return DraftQueue.objects.filter(draft__id=draft_id, team__owner__username=self.request.user.username)
 
 @api_view(['POST'])
-def reorder_queue(request, queue_id):
+def reorder_queue(request, pk):
 	"""Reorder the entire draft queue"""
 	try:
-		queue = DraftQueue.objects.get(id=queue_id, team__owner=request.user)
+		queue = DraftQueue.objects.get(id=pk, team__owner=request.user)
 		serializer = ReorderQueueSerializer(data=request.data)
 
 		if serializer.is_valid():
@@ -265,6 +266,7 @@ def reorder_queue(request, queue_id):
 			with transaction.atomic():
 				queue.queue_items.clear()
 				queue.queue_items = player_ids
+				queue.autopick_enabled = True
 				queue.save()
 
 			return Response(DraftQueueSerializer(queue).data, status=status.HTTP_200_OK)

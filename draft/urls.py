@@ -17,12 +17,12 @@ urlpatterns = [
 	path('drafts/<int:draft_id>/board/', views.draft_board, name='draft-board'),
 	# Draft Position endpoints
 	path(
-		'draft-positions/',
+		'draft/positions/',
 		views.DraftPositionListCreateView.as_view(),
 		name='draft-position-list-create',
 	),
 	path(
-		'draft-positions/<int:pk>/',
+		'draft/positions/<int:pk>/',
 		views.DraftPositionDetailView.as_view(),
 		name='draft-position-detail',
 	),
@@ -42,12 +42,12 @@ urlpatterns = [
 		name='make-pick',
 	),
 	path(
-		'draft/queues/',
+		'drafts/<int:pk>/queues/',
 		views.DraftQueueListCreateView.as_view(),
 		name='draft-queue-list-create',
 	),
 	path(
-		'draft/queues/<int:pk>/reorder/',
+		'drafts/queues/<int:pk>/reorder/',
 		views.reorder_queue,
 		name='reorder-draft-queue',
 	),

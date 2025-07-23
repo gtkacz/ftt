@@ -1,5 +1,5 @@
 from datetime import datetime, time, timedelta
-from json import dumps, loads
+from json import loads
 from random import shuffle
 from zoneinfo import ZoneInfo
 
@@ -7,7 +7,6 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from core.models import Contract, Player, Team
-from draft.models import DraftQueue
 
 
 class Pick(models.Model):
@@ -427,8 +426,6 @@ class DraftPick(models.Model):
 	def make_pick(self, player: Player | None) -> Player:
 		"""Make a pick for the draft position"""
 		if self.time_left_to_pick() <= 0:
-			from json import loads
-
 			self.is_auto_pick = True
 
 			players = (
@@ -494,7 +491,6 @@ class DraftPick(models.Model):
 					if next_player:
 						next_pick.make_pick(next_player)
 
-
 		return self.selected_player
 
 	class Meta:
@@ -519,7 +515,7 @@ class DraftQueue(models.Model):
 		Draft, on_delete=models.CASCADE, related_name='team_queues'
 	)
 	autopick_enabled = models.BooleanField(
-		default=False, help_text='Enable auto-pick from queue'
+		default=True, help_text='Enable auto-pick from queue'
 	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -542,18 +538,16 @@ class DraftQueue(models.Model):
 		if not self.queue_items:
 			return None
 
-		queue = loads(self.queue_items)
-
-		return Player.objects.filter(id=queue[0]).first() if self.queue_items else None
+		return Player.objects.filter(id=self.queue_items[0]).first() if self.queue_items else None
 
 	def remove_player(self, player: Player):
 		"""Remove a player from the queue and reorder"""
 		if not self.queue_items:
 			return None
 
-		queue = loads(self.queue_items)
+		queue = self.queue_items
 
 		queue.remove(player.id)
 
-		self.queue_items = dumps(queue)
+		self.queue_items = queue
 		self.save()
