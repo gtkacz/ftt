@@ -147,10 +147,9 @@ class PlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
 	ordering_fields = ['id', 'name', 'position', 'team', 'salary', 'relevancy']
 
 
-class NotificationView(generics.ListAPIView):
+class NotificationView(generics.ListAPIView, generics.RetrieveUpdateDestroyAPIView):
 	queryset = Notification.objects.all()
 	serializer_class = NotificationSerializer
-	permission_classes = [permissions.IsAuthenticated]
 	filterset_fields = ['user', 'is_read', 'created_at', 'level', 'priority']
 	ordering_fields = ['created_at']
 
