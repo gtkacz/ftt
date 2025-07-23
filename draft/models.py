@@ -486,19 +486,19 @@ class DraftPick(models.Model):
 					team=next_pick.pick.current_team, draft=self.draft
 				).first()
 
-				if queue and queue.autopick_enabled:
-					for _ in range(len(queue.queue_items)):
-						next_player = queue.get_next_player()
+				# if queue and queue.autopick_enabled:
+				# 	for _ in range(len(queue.queue_items)):
+				# 		next_player = queue.get_next_player()
 
-						if next_player and (
-							next_player == player or hasattr(next_player, 'contract')
-						):
-							queue.remove_player(next_player)
-							next_player = queue.get_next_player()
+				# 		if next_player and (
+				# 			next_player == player or hasattr(next_player, 'contract')
+				# 		):
+				# 			queue.remove_player(next_player)
+				# 			next_player = queue.get_next_player()
 
-						if next_player:
-							queue.remove_player(next_player)
-							next_pick.make_pick(next_player, is_auto_pick=True)
+				# 		if next_player:
+				# 			queue.remove_player(next_player)
+				# 			next_pick.make_pick(next_player, is_auto_pick=True)
 
 		return self.selected_player
 
