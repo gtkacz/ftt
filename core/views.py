@@ -11,7 +11,7 @@ from draft.serializers.pick import PickSerializer
 from .models import Notification, Player, Team, User
 from .serializers import (NotificationSerializer, PlayerSerializer,
                           TeamSerializer, UserRegistrationSerializer,
-                          UserSerializer, UserUpdateSerializer)
+                          UserSerializer, UserUpdateSerializer, SimplePlayerSerializer)
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -132,7 +132,7 @@ def team_picks_view(request, pk):
 
 class PlayerListCreateView(generics.ListCreateAPIView):
 	queryset = Player.objects.all()
-	serializer_class = PlayerSerializer
+	serializer_class = SimplePlayerSerializer
 	filterset_fields = [
 		field.name for field in Player._meta.fields if field.name != 'metadata'
 	]

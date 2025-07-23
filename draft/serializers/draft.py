@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from core.serializers import PlayerSerializer
+from core.serializers import SimplePlayerSerializer
 from draft.models import Draft
 from draft.serializers.draft_pick import DraftPositionSerializer
 
 
 class DraftSerializer(serializers.ModelSerializer):
-	draftable_players = PlayerSerializer(
+	draftable_players = SimplePlayerSerializer(
 		many=True,
 		read_only=True,
 		help_text='List of all players available in this draft',

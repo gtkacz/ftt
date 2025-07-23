@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from core.models import Player
-from core.serializers import PlayerSerializer
+from core.serializers import SimplePlayerSerializer
 from draft.models import DraftQueue
 
 
@@ -16,7 +16,7 @@ class DraftQueueSerializer(serializers.ModelSerializer):
 		"""Return a list of player IDs in the draft queue"""
 		return (
 			[
-				PlayerSerializer(Player.objects.get(id=item)).data
+				SimplePlayerSerializer(Player.objects.get(id=item)).data
 				for item in obj.queue_items
 			]
 			if obj.queue_items
