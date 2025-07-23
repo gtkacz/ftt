@@ -164,8 +164,8 @@ class Draft(models.Model):
 		if back_to < 1 or back_to >= current_overall_pick:
 			raise ValueError('Invalid back_to value')
 
-		for _ in range(back_to, current_overall_pick + 1):
-			draft_pick: DraftPick = self.draft_positions.filter(overall_pick=_).first()
+		for i in range(back_to, current_overall_pick + 1):
+			draft_pick: DraftPick = self.draft_positions.filter(overall_pick=i).first()
 
 			if draft_pick and draft_pick.is_pick_made:
 				draft_pick.undo_pick()
@@ -532,11 +532,7 @@ class DraftPick(models.Model):
 				next_pick.started_at = timezone.now()
 				next_pick.save()
 
-				Notification.objects.create(
-					user=next_pick.pick.current_team.owner,
-					message=f'Your team is now on the clock for the {next_pick.overall_pick} pick in the {self.draft.year} {"league" if self.draft.is_league_draft else ""} draft. You have {self.draft.time_limit_per_pick / 60} hour(s) to make your pick.',
-					level='warning',
-				)
+				self.send_pick_notifications(next_pick)
 
 				queue = DraftQueue.objects.filter(
 					team=next_pick.pick.current_team, draft=self.draft
@@ -587,6 +583,27 @@ class DraftPick(models.Model):
 			self.save()
 
 		return True
+
+	def send_pick_notifications(self, draft_pick: 'DraftPick'):
+		Notification.objects.create(
+			user=draft_pick.pick.current_team.owner,
+			message=f'Your team is now on the clock for the {draft_pick.overall_pick} pick in the {self.draft.year} {"league" if self.draft.is_league_draft else ""} draft. You have {self.draft.time_limit_per_pick / 60} hour(s) to make your pick.',
+			level='warning',
+		)
+
+		# for pick in range(draft_pick.overall_pick + 1, draft_pick.overall_pick + 4):
+		# 	next_pick = self.draft.draft_positions.filter(overall_pick=pick)
+
+		# 	if not next_pick.exists():
+		# 		continue
+
+		# 	next_pick = next_pick.first()
+
+		# 	Notification.objects.create(
+		# 		user=next_pick.pick.current_team.owner,
+		# 		message=f'Your team has the {next_pick.overall_pick} pick in the {self.draft.year} {"league" if self.draft.is_league_draft else ""} draft.',
+		# 		level='info',
+		# 	)
 
 	class Meta:
 		ordering = ['draft', 'pick']
@@ -659,7 +676,7 @@ class DraftQueue(models.Model):
 				self.queue_items.remove(id)
 				Notification.objects.create(
 					user=self.team.owner,
-					message=f'Player  {player} has been removed from your draft queue because they are no longer available.',
+					message=f'Player {player.first()} has been removed from your draft queue because they are no longer available.',
 					priority=2,
 					level='warning',
 				)

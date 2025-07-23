@@ -89,6 +89,23 @@ class Team(models.Model):
 				level='info',
 			)
 
+		else:
+			if self.available_salary() < 0:
+				Notification.objects.create(
+					user=self.owner,
+					message=f'Your team "{self.name}" has hit the salary cap.',
+					priority=1,
+					level='warning',
+				)
+
+			if self.available_players() < 0:
+				Notification.objects.create(
+					user=self.owner,
+					message=f'Your team "{self.name}" has hit the player cap.',
+					priority=1,
+					level='warning',
+				)
+
 		return super().save(*args, **kwargs)
 
 
@@ -133,6 +150,17 @@ class Player(models.Model):
 
 	def __str__(self):
 		return f'{self.first_name} {self.last_name}'
+
+	def save(self, *args, **kwargs):
+		if self.id:
+			Notification.objects.create(
+				user=self.contract.team.owner,
+				message=f'{self} has been updated.',
+				priority=1,
+				level='debug',
+			)
+
+		return super().save(*args, **kwargs)
 
 
 class Contract(models.Model):

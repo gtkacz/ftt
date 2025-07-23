@@ -183,7 +183,9 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 
 	def get_team(self, obj: Player) -> dict:
 		if hasattr(obj, 'contract'):
-			return django_obj_to_dict(obj.contract.team, exclude_fields=['players', 'current_picks'])
+			return django_obj_to_dict(
+				obj.contract.team, exclude_fields=['players', 'current_picks']
+			)
 
 		return {}
 
@@ -218,7 +220,8 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 					float(metadata.get('pts', 0.0))
 					+ float(metadata.get('ast', 0.0))
 					+ float(metadata.get('reb', 0.0))
-				) / 2.0,
+				)
+				/ 2.0,
 				1,
 			)
 		except Exception:

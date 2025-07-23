@@ -29,7 +29,9 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
 	}
 
 
-def django_obj_to_dict(object: Type[Model], *, exclude_fields: list[str] = list()) -> Dict[str, Any]:
+def django_obj_to_dict(
+	object: Type[Model], *, exclude_fields: list[str] = list()
+) -> Dict[str, Any]:
 	"""
 	This function converts a Django model object to a dictionary.
 
@@ -39,4 +41,11 @@ def django_obj_to_dict(object: Type[Model], *, exclude_fields: list[str] = list(
 	Returns:
 	    Dict[str, Any]: The dictionary representation of the Django model object.
 	"""
-	return model_to_dict(object, fields=[field.name for field in object._meta.fields if field.name not in exclude_fields])
+	return model_to_dict(
+		object,
+		fields=[
+			field.name
+			for field in object._meta.fields
+			if field.name not in exclude_fields
+		],
+	)
