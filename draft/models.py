@@ -152,7 +152,9 @@ class Draft(models.Model):
 			return teams_order
 
 	def unmake_picks(self, *, back_to: int = 1):
-		current_overall_pick = self.draft_positions.filter(is_current=True).first().overall_pick
+		current_overall_pick = (
+			self.draft_positions.filter(is_current=True).first().overall_pick
+		)
 
 		if back_to < 1 or back_to >= current_overall_pick:
 			raise ValueError('Invalid back_to value')
@@ -162,6 +164,32 @@ class Draft(models.Model):
 
 			if draft_pick and draft_pick.is_pick_made:
 				draft_pick.undo_pick()
+
+	def print_picks(self, *, recent_only: bool = False):
+		output = []
+		start_at_round = (
+			1
+			if not recent_only
+			else self.draft_positions.filter(is_current=True).first().pick.round_number
+			- 1
+		)
+
+		for i in range(
+			DraftPick.objects.filter(draft=self, pick__round_number=start_at_round)
+			.first()
+			.overall_pick,
+			1000,
+		):
+			curr = DraftPick.objects.filter(overall_pick=i)
+
+			if not curr.exists() or not curr.first().is_pick_made:
+				break
+
+			curr = curr.first()
+			output.append(f'{curr} - {curr.selected_player}')
+
+		for item in output:
+			print(item)
 
 	def __str__(self):
 		return f'{self.year} Draft'
@@ -494,23 +522,24 @@ class DraftPick(models.Model):
 				next_pick.started_at = timezone.now()
 				next_pick.save()
 
-				# queue = DraftQueue.objects.filter(
-				# 	team=next_pick.pick.current_team, draft=self.draft
-				# ).first()
+				queue = DraftQueue.objects.filter(
+					team=next_pick.pick.current_team, draft=self.draft
+				).first()
 
-				# if queue and queue.autopick_enabled:
-				# 	for _ in range(len(queue.queue_items)):
-				# 		next_player = queue.get_next_player()
+				if queue and queue.autopick_enabled:
+					for _ in range(len(queue.queue_items)):
+						next_player = queue.get_next_player()
 
-				# 		if next_player and (
-				# 			next_player == player or hasattr(next_player, 'contract')
-				# 		):
-				# 			queue.remove_player(next_player)
-				# 			next_player = queue.get_next_player()
+						if next_player and (
+							next_player == player or hasattr(next_player, 'contract')
+						):
+							queue.remove_player(next_player)
+							next_player = queue.get_next_player()
 
-				# 		if next_player:
-				# 			queue.remove_player(next_player)
-				# 			next_pick.make_pick(next_player, is_auto_pick=True)
+						if next_player:
+							queue.remove_player(next_player)
+							next_pick.make_pick(next_player, is_auto_pick=True)
+							break
 
 		return self.selected_player
 
@@ -600,3 +629,12 @@ class DraftQueue(models.Model):
 
 		self.queue_items = queue
 		self.save()
+
+	def save(self, *args, **kwargs) -> None:
+		for id in self.queue_items:
+			player = Player.objects.filter(id=id)
+
+			if not player.exists() or hasattr(player.first(), 'contract'):
+				self.queue_items.remove(id)
+
+		super().save(*args, **kwargs)
