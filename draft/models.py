@@ -423,7 +423,7 @@ class DraftPick(models.Model):
 
 		return round(total_seconds)
 
-	def make_pick(self, player: Player | None) -> Player:
+	def make_pick(self, player: Player | None, *, is_auto_pick: bool = False) -> Player:
 		"""Make a pick for the draft position"""
 		if self.time_left_to_pick() <= 0:
 			self.is_auto_pick = True
@@ -457,7 +457,7 @@ class DraftPick(models.Model):
 		if not self.is_current:
 			raise ValueError('Draft pick is not current')
 
-		next_pick = self.draft.draft_positions.filter(
+		next_pick: DraftPick = self.draft.draft_positions.filter(
 			overall_pick=self.overall_pick + 1
 		).first()
 
@@ -465,6 +465,7 @@ class DraftPick(models.Model):
 			self.selected_player = player
 			self.is_pick_made = True
 			self.pick_made_at = timezone.now()
+			self.is_auto_pick = is_auto_pick
 			self.is_current = False
 
 			self.contract.player = player
@@ -488,9 +489,13 @@ class DraftPick(models.Model):
 				if queue and queue.autopick_enabled:
 					next_player = queue.get_next_player()
 
+					if next_player and next_player == player:
+						queue.remove_player(next_player)
+						next_player = queue.get_next_player()
+
 					if next_player:
 						queue.remove_player(next_player)
-						next_pick.make_pick(next_player)
+						next_pick.make_pick(next_player, is_auto_pick=True)
 
 		return self.selected_player
 
