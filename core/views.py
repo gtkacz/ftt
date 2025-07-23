@@ -8,10 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from draft.models import Pick
 from draft.serializers.pick import PickSerializer
 
-from .models import Player, Team, User
+from .models import Player, Team, User, Notification
 from .serializers import (PlayerSerializer, TeamSerializer,
                           UserRegistrationSerializer, UserSerializer,
-                          UserUpdateSerializer)
+                          UserUpdateSerializer, NotificationSerializer)
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -145,3 +145,14 @@ class PlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
 		field.name for field in Player._meta.fields if field.name != 'metadata'
 	]
 	ordering_fields = ['id', 'name', 'position', 'team', 'salary', 'relevancy']
+
+
+class NotificationView(generics.ListAPIView):
+	queryset = Notification.objects.all()
+	serializer_class = NotificationSerializer
+	permission_classes = [permissions.IsAuthenticated]
+	filterset_fields = ['user', 'is_read', 'created_at', 'level', 'priority']
+	ordering_fields = ['created_at']
+
+	def get_queryset(self):
+		return self.queryset.filter(user=self.request.user).order_by('-created_at')

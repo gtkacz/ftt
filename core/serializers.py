@@ -3,7 +3,7 @@ from rest_framework import serializers
 from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
-from .models import Contract, NBATeam, Player, Team, User
+from .models import Contract, NBATeam, Player, Team, User, Notification
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -308,3 +308,14 @@ class PlayerSerializer(SimplePlayerSerializer):
 		model = Player
 		fields = '__all__'
 		read_only_fields = ['id', 'created_at']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Notification
+		fields = '__all__'
+		read_only_fields = ['id', 'created_at', 'updated_at']
+		extra_kwargs = {
+			'user': {'required': False, 'allow_null': True},
+			'read': {'default': False},
+		}

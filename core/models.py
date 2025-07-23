@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 from ftt.settings import LEAGUE_SETTINGS
 
@@ -29,7 +30,7 @@ class Notification(models.Model):
 	is_read = models.BooleanField(default=False)
 	priority = models.PositiveIntegerField(
 		default=1,
-		help_text='Priority of the notification, lower number means higher priority',
+		help_text='Priority of the notification, higher number means higher priority',
 	)
 	level = models.CharField(
 		max_length=10,
@@ -77,6 +78,18 @@ class Team(models.Model):
 			self.total_players() < LEAGUE_SETTINGS.MAX_PLAYER_CAP
 			and self.total_salary() < LEAGUE_SETTINGS.SALARY_CAP
 		)
+
+	def save(self, *args, **kwargs):
+		if not self.id:
+			# Create a notification for the owner when the team is created
+			Notification.objects.create(
+				user=self.owner,
+				message=f'Your team "{self.name}" has been created.',
+				priority=1,
+				level='info',
+			)
+
+		return super().save(*args, **kwargs)
 
 
 class NBATeam(models.Model):
@@ -148,7 +161,7 @@ class Contract(models.Model):
 				level='info',
 			)
 
-		super().save(*args, **kwargs)
+		return super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f'{self.player} - {self.team} ({self.start_year}-{self.start_year + self.duration - 1})'

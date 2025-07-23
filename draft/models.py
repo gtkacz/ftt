@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from django.db import models, transaction
 from django.utils import timezone
 
-from core.models import Contract, Player, Team
+from core.models import Contract, Player, Team, Notification
 
 
 class Pick(models.Model):
@@ -139,6 +139,11 @@ class Draft(models.Model):
 						pick_number=pick_num,
 						overall_pick=overall_pick,
 						is_current=(overall_pick == 1),
+					)
+
+					Notification.objects.create(
+						user=current_pick.current_team.owner,
+						message=f'Your team has the {overall_pick} pick in the {self.year} {"league" if self.is_league_draft else ""} draft!',
 					)
 
 					current_contract = draft_pick.generate_contract()
@@ -522,6 +527,12 @@ class DraftPick(models.Model):
 				next_pick.started_at = timezone.now()
 				next_pick.save()
 
+				Notification.objects.create(
+					user=next_pick.pick.current_team.owner,
+					message=f'Your team is now on the clock for the {next_pick.overall_pick} pick in the {self.draft.year} {"league" if self.draft.is_league_draft else ""} draft. You have {self.draft.time_limit_per_pick / 60} hour(s) to make your pick.',
+					level='warning',
+				)
+
 				queue = DraftQueue.objects.filter(
 					team=next_pick.pick.current_team, draft=self.draft
 				).first()
@@ -539,6 +550,11 @@ class DraftPick(models.Model):
 						if next_player:
 							queue.remove_player(next_player)
 							next_pick.make_pick(next_player, is_auto_pick=True)
+							Notification.objects.create(
+								user=next_pick.pick.current_team.owner,
+								message=f'Your team has automatically picked {next_player} from the draft queue.',
+								level='warning',
+							)
 							break
 
 		return self.selected_player
@@ -636,5 +652,11 @@ class DraftQueue(models.Model):
 
 			if not player.exists() or hasattr(player.first(), 'contract'):
 				self.queue_items.remove(id)
+				Notification.objects.create(
+					user=self.team.owner,
+					message=f'Player  {player} has been removed from your draft queue because they are no longer available.',
+					priority=2,
+					level='warning',
+				)
 
-		super().save(*args, **kwargs)
+		return super().save(*args, **kwargs)
