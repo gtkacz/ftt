@@ -17,11 +17,26 @@ class User(AbstractUser):
 
 
 class Notification(models.Model):
+	LEVEL_CHOICES = [
+		('info', 'Info'),
+		('warning', 'Warning'),
+		('error', 'Error'),
+	]
 	user = models.ForeignKey(
 		User, on_delete=models.CASCADE, related_name='notifications'
 	)
 	message = models.CharField(max_length=255)
 	is_read = models.BooleanField(default=False)
+	priority = models.PositiveIntegerField(
+		default=1,
+		help_text='Priority of the notification, lower number means higher priority',
+	)
+	level = models.CharField(
+		max_length=10,
+		choices=LEVEL_CHOICES,
+		default='info',
+		help_text='Notification level',
+	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -123,6 +138,17 @@ class Contract(models.Model):
 	is_to = models.BooleanField(default=False, help_text='Team Option')
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
+	def save(self, *args, **kwargs):
+		if hasattr(self, 'player') and hasattr(self, 'team'):
+			Notification.objects.create(
+				user=self.team,
+				message=f'{self.player} has signed a contract with your team starting in {self.start_year}',
+				priority=1,
+				level='info',
+			)
+
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f'{self.player} - {self.team} ({self.start_year}-{self.start_year + self.duration - 1})'
