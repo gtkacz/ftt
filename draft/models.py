@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from core.models import Contract, Player, Team
+from draft.models import DraftQueue
 
 
 class Pick(models.Model):
@@ -482,6 +483,17 @@ class DraftPick(models.Model):
 				next_pick.is_current = True
 				next_pick.started_at = timezone.now()
 				next_pick.save()
+
+				queue = DraftQueue.objects.filter(
+					team=next_pick.pick.current_team, draft=self.draft
+				).first()
+
+				if queue and queue.autopick_enabled:
+					next_player = queue.get_next_player()
+
+					if next_player:
+						next_pick.make_pick(next_player)
+
 
 		return self.selected_player
 
