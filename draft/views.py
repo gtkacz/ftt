@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from core.models import Contract, Player
-from core.serializers import PlayerSerializer
+from core.serializers import SimplePlayerSerializer
 from draft.models import DraftQueue
 from draft.serializers.draft import DraftSerializer
 from draft.serializers.draft_pick import DraftPositionSerializer
@@ -156,7 +156,17 @@ def draft_picks_view(request, pk):
 	"""
 	try:
 		draft = Draft.objects.get(pk=pk)
-		picks = DraftPick.objects.filter(draft=draft).order_by('overall_pick')
+		picks = (
+			DraftPick.objects.filter(draft=draft)
+			.select_related(
+				'pick__current_team',
+				'contract',
+				'selected_player__real_team',
+				'selected_player__contract__team',
+			)
+			.prefetch_related('selected_player__contract')
+			.order_by('overall_pick')
+		)
 		data = list(
 			picks.values(
 				'id',
@@ -183,7 +193,7 @@ def draft_picks_view(request, pk):
 			pick['time_to_pick'] = pick_obj.time_left_to_pick()
 
 			pick['player'] = (
-				PlayerSerializer(pick_obj.selected_player).data
+				SimplePlayerSerializer(pick_obj.selected_player).data
 				if pick_obj.selected_player
 				else None
 			)
