@@ -539,7 +539,11 @@ class DraftQueue(models.Model):
 		if not self.queue_items:
 			return None
 
-		return Player.objects.filter(id=self.queue_items[0]).first() if self.queue_items else None
+		return (
+			Player.objects.filter(id=self.queue_items[0]).first()
+			if self.queue_items
+			else None
+		)
 
 	def remove_player(self, player: Player):
 		"""Remove a player from the queue and reorder"""

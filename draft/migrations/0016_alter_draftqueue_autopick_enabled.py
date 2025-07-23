@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+	dependencies = [
+		('draft', '0015_draftqueue'),
+	]
 
-    dependencies = [
-        ('draft', '0015_draftqueue'),
-    ]
-
-    operations = [
-        migrations.AlterField(
-            model_name='draftqueue',
-            name='autopick_enabled',
-            field=models.BooleanField(default=True, help_text='Enable auto-pick from queue'),
-        ),
-    ]
+	operations = [
+		migrations.AlterField(
+			model_name='draftqueue',
+			name='autopick_enabled',
+			field=models.BooleanField(
+				default=True, help_text='Enable auto-pick from queue'
+			),
+		),
+	]
