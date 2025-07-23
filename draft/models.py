@@ -489,6 +489,7 @@ class DraftPick(models.Model):
 					next_player = queue.get_next_player()
 
 					if next_player:
+						queue.remove_player(next_player)
 						next_pick.make_pick(next_player)
 
 		return self.selected_player
