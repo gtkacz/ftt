@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from django.db import models, transaction
 from django.utils import timezone
 
-from core.models import Contract, Player, Team, Notification
+from core.models import Contract, Notification, Player, Team
 
 
 class Pick(models.Model):
@@ -521,6 +521,11 @@ class DraftPick(models.Model):
 			self.save()
 			self.contract.save()
 			self.draft.save()
+
+			for queue in self.draft.team_queues.filter(autopick_enabled=True):
+				if queue.queue_items:
+					queue.updated_at = timezone.now()
+					queue.save()
 
 			if next_pick:
 				next_pick.is_current = True

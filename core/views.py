@@ -8,10 +8,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from draft.models import Pick
 from draft.serializers.pick import PickSerializer
 
-from .models import Player, Team, User, Notification
-from .serializers import (PlayerSerializer, TeamSerializer,
-                          UserRegistrationSerializer, UserSerializer,
-                          UserUpdateSerializer, NotificationSerializer)
+from .models import Notification, Player, Team, User
+from .serializers import (NotificationSerializer, PlayerSerializer,
+                          TeamSerializer, UserRegistrationSerializer,
+                          UserSerializer, UserUpdateSerializer)
 
 
 class UserRegistrationView(generics.CreateAPIView):

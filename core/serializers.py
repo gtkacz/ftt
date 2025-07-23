@@ -3,7 +3,7 @@ from rest_framework import serializers
 from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
-from .models import Contract, NBATeam, Player, Team, User, Notification
+from .models import Contract, NBATeam, Notification, Player, Team, User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
