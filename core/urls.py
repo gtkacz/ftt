@@ -20,4 +20,5 @@ urlpatterns = [
 	# Player endpoints
 	path('players/', views.PlayerListCreateView.as_view(), name='player-list-create'),
 	path('players/<int:pk>/', views.PlayerDetailView.as_view(), name='player-detail'),
+	path('notifications/', views.NotificationView.as_view(), name='notification-list-create'),
 ]
