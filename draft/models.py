@@ -151,6 +151,18 @@ class Draft(models.Model):
 
 			return teams_order
 
+	def unmake_picks(self, *, back_to: int = 1):
+		current_overall_pick = self.draft_positions.filter(is_current=True).first().overall_pick
+
+		if back_to < 1 or back_to >= current_overall_pick:
+			raise ValueError('Invalid back_to value')
+
+		for _ in range(back_to, current_overall_pick + 1):
+			draft_pick: DraftPick = self.draft_positions.filter(overall_pick=_).first()
+
+			if draft_pick and draft_pick.is_pick_made:
+				draft_pick.undo_pick()
+
 	def __str__(self):
 		return f'{self.year} Draft'
 
@@ -482,9 +494,9 @@ class DraftPick(models.Model):
 				next_pick.started_at = timezone.now()
 				next_pick.save()
 
-				queue = DraftQueue.objects.filter(
-					team=next_pick.pick.current_team, draft=self.draft
-				).first()
+				# queue = DraftQueue.objects.filter(
+				# 	team=next_pick.pick.current_team, draft=self.draft
+				# ).first()
 
 				# if queue and queue.autopick_enabled:
 				# 	for _ in range(len(queue.queue_items)):
@@ -501,6 +513,30 @@ class DraftPick(models.Model):
 				# 			next_pick.make_pick(next_player, is_auto_pick=True)
 
 		return self.selected_player
+
+	def undo_pick(self):
+		"""Undo the last pick made in the draft"""
+		if not self.is_pick_made:
+			raise ValueError('No pick has been made yet')
+
+		if not self.selected_player or not self.contract:
+			raise ValueError('Invalid pick data')
+
+		with transaction.atomic():
+			self.draft.draftable_players.add(self.selected_player)
+
+			self.is_pick_made = False
+			self.selected_player = None
+			self.pick_made_at = None
+			self.is_current = False
+			self.is_auto_pick = False
+
+			self.contract.player = None
+
+			self.contract.save()
+			self.save()
+
+		return True
 
 	class Meta:
 		ordering = ['draft', 'pick']
