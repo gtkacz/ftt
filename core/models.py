@@ -140,13 +140,13 @@ class Contract(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 
 	def save(self, *args, **kwargs):
-		if hasattr(self, 'player') and hasattr(self, 'team'):
-			Notification.objects.create(
-				user=self.team,
-				message=f'{self.player} has signed a contract with your team starting in {self.start_year}',
-				priority=1,
-				level='info',
-			)
+		# if hasattr(self, 'player') and hasattr(self, 'team'):
+		# 	Notification.objects.create(
+		# 		user=self.team,
+		# 		message=f'{self.player} has signed a contract with your team starting in {self.start_year}',
+		# 		priority=1,
+		# 		level='info',
+		# 	)
 
 		super().save(*args, **kwargs)
 
