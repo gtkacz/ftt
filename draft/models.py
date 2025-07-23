@@ -487,15 +487,18 @@ class DraftPick(models.Model):
 				).first()
 
 				if queue and queue.autopick_enabled:
-					next_player = queue.get_next_player()
-
-					if next_player and next_player == player:
-						queue.remove_player(next_player)
+					for _ in range(len(queue.queue_items)):
 						next_player = queue.get_next_player()
 
-					if next_player:
-						queue.remove_player(next_player)
-						next_pick.make_pick(next_player, is_auto_pick=True)
+						if next_player and (
+							next_player == player or hasattr(next_player, 'contract')
+						):
+							queue.remove_player(next_player)
+							next_player = queue.get_next_player()
+
+						if next_player:
+							queue.remove_player(next_player)
+							next_pick.make_pick(next_player, is_auto_pick=True)
 
 		return self.selected_player
 
