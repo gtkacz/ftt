@@ -15,25 +15,29 @@ def parse_positions(pos_str: str) -> tuple[str, str | None]:
 
 	return primary, secondary
 
+def treat_name(name: str) -> str:
+	return name.removesuffix(" Jr").removesuffix(" Jr.").replace("Cam", "Cameron").removesuffix(" II").removesuffix(" III").removesuffix(" IV").replace("'", '')
 
 def main(csv_path):
 	df = pd.read_csv(csv_path, usecols=["Player", "Position", "FP/G", "FPts"])
+	found_ids = []
 
 	with transaction.atomic():
 		for _, row in df.iterrows():
 			csv_name = row["Player"]
-			norm_csv_name = csv_name
+			norm_csv_name = treat_name(csv_name)
 
 			# Find matching player
 			player = None
 			for p in Player.objects.all():
-				full_name = f"{p.first_name} {p.last_name}".removesuffix(" Jr").removesuffix(" Jr.").replace("Cam", "Cameron")
+				full_name = treat_name(f"{p.first_name} {p.last_name}")
 				if unidecode.unidecode(full_name) == norm_csv_name:
 					player = p
+					found_ids.append(p.pk)
 					break
 
 			if not player:
-				print(f"Player not found: {csv_name}")
+				# print(f"Player not found: {csv_name}")
 				continue
 
 			# Parse positions
@@ -53,4 +57,7 @@ def main(csv_path):
 			player.metadata = json.dumps(meta)
 
 			player.save()
-			print(f"Updated {csv_name}: primary={primary}, secondary={secondary}, fpts={row['FP/G']}")
+			# print(f"Updated {csv_name}: primary={primary}, secondary={secondary}, fpts={row['FP/G']}")
+
+	for plr in Player.objects.filter(contract__isnull=False).exclude(id__in=found_ids):
+		print(f'Signed player not found: {plr}')
