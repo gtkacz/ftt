@@ -42,9 +42,14 @@ urlpatterns = [
 		name='make-pick',
 	),
 	path(
-		'drafts/<int:pk>/queues/',
+		'drafts/<int:draft>/queues/',
 		views.DraftQueueListCreateView.as_view(),
 		name='draft-queue-list-create',
+	),
+	path(
+		'drafts/<int:draft>/queues/<int:pk>/',
+		views.DraftQueueListCreateView.as_view(),
+		name='draft-queue-update',
 	),
 	path(
 		'drafts/queues/<int:pk>/reorder/',

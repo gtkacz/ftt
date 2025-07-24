@@ -255,12 +255,12 @@ def make_pick(request, pk):
 		)
 
 
-class DraftQueueListCreateView(generics.ListCreateAPIView):
+class DraftQueueListCreateView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
 	serializer_class = DraftQueueSerializer
 
 	def get_queryset(self):
 		"""Filter queryset based on the draft ID from the URL"""
-		draft_id = self.kwargs.get('pk')
+		draft_id = self.kwargs.get('draft')
 		return DraftQueue.objects.filter(
 			draft__id=draft_id, team__owner__username=self.request.user.username
 		)
