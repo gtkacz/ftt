@@ -142,7 +142,7 @@ class Player(models.Model):
 		return f"{self.first_name} {self.last_name}"
 
 	def save(self, *args, **kwargs):
-		if self.id:
+		if self.id and hasattr(self, "contract"):
 			Notification.objects.create(
 				user=self.contract.team.owner,
 				message=f"{self} has been updated.",

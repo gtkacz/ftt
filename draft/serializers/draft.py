@@ -12,7 +12,9 @@ class DraftSerializer(serializers.ModelSerializer):
 		help_text="List of all players available in this draft",
 	)
 	draft_positions = DraftPositionSerializer(
-		many=True, read_only=True, help_text="Complete draft order and pick status",
+		many=True,
+		read_only=True,
+		help_text="Complete draft order and pick status",
 	)
 
 	class Meta:

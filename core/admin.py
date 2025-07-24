@@ -1,5 +1,3 @@
-
-
 # class UserAdmin(BaseUserAdmin):
 # 	fieldsets = BaseUserAdmin.fieldsets
 # 	list_display = BaseUserAdmin.list_display

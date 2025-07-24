@@ -1,5 +1,3 @@
-
-
 # class PickAdmin(admin.ModelAdmin):
 # 	list_display = [
 # 		'__str__',

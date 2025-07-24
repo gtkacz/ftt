@@ -72,7 +72,9 @@ class NBATeamSerializer(serializers.ModelSerializer):
 
 class TeamSerializer(serializers.ModelSerializer):
 	owner_username = serializers.CharField(
-		source="owner.username", read_only=True, help_text="Username of the team owner",
+		source="owner.username",
+		read_only=True,
+		help_text="Username of the team owner",
 	)
 	total_salary = serializers.SerializerMethodField(help_text="Total salary of all players on the team")
 	total_players = serializers.SerializerMethodField(help_text="Number of players currently on the team")

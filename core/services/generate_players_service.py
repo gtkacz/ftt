@@ -38,7 +38,8 @@ def parse_response_to_dataframe(
 
 	players_df = players_df[players_df["TO_YEAR"].astype(int) >= date.today().year - 5]
 	players_df["real_team"] = players_df.apply(
-		lambda x: x["real_team"] if pd.notnull(x["roster_status"]) else None, axis=1,
+		lambda x: x["real_team"] if pd.notnull(x["roster_status"]) else None,
+		axis=1,
 	)
 
 	teams_df = pd.DataFrame(rows, columns=headers)[
