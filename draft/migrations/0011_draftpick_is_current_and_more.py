@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0017_player_slug'),
-		('draft', '0010_remove_draftpick_salary_draftpick_contract'),
+		("core", "0017_player_slug"),
+		("draft", "0010_remove_draftpick_salary_draftpick_contract"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='draftpick',
-			name='is_current',
+			model_name="draftpick",
+			name="is_current",
 			field=models.BooleanField(default=False),
-		)
+		),
 	]

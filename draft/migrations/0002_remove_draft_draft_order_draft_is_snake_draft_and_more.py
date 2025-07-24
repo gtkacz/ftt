@@ -6,76 +6,68 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0002_player_is_ir_player_is_to'),
-		('draft', '0001_initial'),
+		("core", "0002_player_is_ir_player_is_to"),
+		("draft", "0001_initial"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='draft',
-			name='draft_order',
+			model_name="draft",
+			name="draft_order",
 		),
 		migrations.AddField(
-			model_name='draft',
-			name='is_snake_draft',
-			field=models.BooleanField(
-				default=True, help_text='Snake draft reverses order each round'
-			),
+			model_name="draft",
+			name="is_snake_draft",
+			field=models.BooleanField(default=True, help_text="Snake draft reverses order each round"),
 		),
 		migrations.CreateModel(
-			name='DraftPosition',
+			name="DraftPosition",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('round_number', models.PositiveIntegerField()),
+				("round_number", models.PositiveIntegerField()),
 				(
-					'pick_number',
-					models.PositiveIntegerField(
-						help_text='Pick number within the round'
-					),
+					"pick_number",
+					models.PositiveIntegerField(help_text="Pick number within the round"),
 				),
 				(
-					'overall_pick',
-					models.PositiveIntegerField(
-						help_text='Overall pick number in draft'
-					),
+					"overall_pick",
+					models.PositiveIntegerField(help_text="Overall pick number in draft"),
 				),
-				('is_pick_made', models.BooleanField(default=False)),
-				('pick_made_at', models.DateTimeField(blank=True, null=True)),
+				("is_pick_made", models.BooleanField(default=False)),
+				("pick_made_at", models.DateTimeField(blank=True, null=True)),
 				(
-					'draft',
+					"draft",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='draft_positions',
-						to='draft.draft',
+						related_name="draft_positions",
+						to="draft.draft",
 					),
 				),
 				(
-					'selected_player',
+					"selected_player",
 					models.ForeignKey(
 						blank=True,
 						null=True,
 						on_delete=django.db.models.deletion.SET_NULL,
-						to='core.player',
+						to="core.player",
 					),
 				),
 				(
-					'team',
-					models.ForeignKey(
-						on_delete=django.db.models.deletion.CASCADE, to='core.team'
-					),
+					"team",
+					models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.team"),
 				),
 			],
 			options={
-				'ordering': ['draft', 'overall_pick'],
-				'unique_together': {('draft', 'overall_pick')},
+				"ordering": ["draft", "overall_pick"],
+				"unique_together": {("draft", "overall_pick")},
 			},
 		),
 	]

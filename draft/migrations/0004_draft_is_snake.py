@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0003_remove_draft_is_snake_draft'),
+		("draft", "0003_remove_draft_is_snake_draft"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='draft',
-			name='is_snake',
+			model_name="draft",
+			name="is_snake",
 			field=models.BooleanField(default=False),
 		),
 	]

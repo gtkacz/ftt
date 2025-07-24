@@ -34,76 +34,76 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = ENV.ENVIRONMENT == 'development'
+DEBUG = ENV.ENVIRONMENT == "development"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-	'django.contrib.admin',
-	'django.contrib.auth',
-	'django.contrib.contenttypes',
-	'django.contrib.sessions',
-	'django.contrib.messages',
-	'django.contrib.staticfiles',
-	'rest_framework',
-	'rest_framework_simplejwt',
-	'rest_framework_simplejwt.token_blacklist',
-	'corsheaders',
-	'puml_generator',
-	'drf_spectacular',
-	'django_extensions',
-	'sslserver',
-	'django_filters',
-	'crispy_forms',
-	'crispy_bootstrap4',
-	'core',
-	'draft',
-	'auction',
+	"django.contrib.admin",
+	"django.contrib.auth",
+	"django.contrib.contenttypes",
+	"django.contrib.sessions",
+	"django.contrib.messages",
+	"django.contrib.staticfiles",
+	"rest_framework",
+	"rest_framework_simplejwt",
+	"rest_framework_simplejwt.token_blacklist",
+	"corsheaders",
+	"puml_generator",
+	"drf_spectacular",
+	"django_extensions",
+	"sslserver",
+	"django_filters",
+	"crispy_forms",
+	"crispy_bootstrap4",
+	"core",
+	"draft",
+	"auction",
 ]
 
 MIDDLEWARE = [
-	'corsheaders.middleware.CorsMiddleware',
-	'django.middleware.security.SecurityMiddleware',
-	'django.contrib.sessions.middleware.SessionMiddleware',
-	'django.middleware.common.CommonMiddleware',
-	'django.middleware.csrf.CsrfViewMiddleware',
-	'django.contrib.auth.middleware.AuthenticationMiddleware',
-	'django.contrib.messages.middleware.MessageMiddleware',
-	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	"corsheaders.middleware.CorsMiddleware",
+	"django.middleware.security.SecurityMiddleware",
+	"django.contrib.sessions.middleware.SessionMiddleware",
+	"django.middleware.common.CommonMiddleware",
+	"django.middleware.csrf.CsrfViewMiddleware",
+	"django.contrib.auth.middleware.AuthenticationMiddleware",
+	"django.contrib.messages.middleware.MessageMiddleware",
+	"django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'ftt.urls'
+ROOT_URLCONF = "ftt.urls"
 
 TEMPLATES = [
 	{
-		'BACKEND': 'django.template.backends.django.DjangoTemplates',
-		'DIRS': [],
-		'APP_DIRS': True,
-		'OPTIONS': {
-			'context_processors': [
-				'django.template.context_processors.debug',
-				'django.template.context_processors.request',
-				'django.contrib.auth.context_processors.auth',
-				'django.contrib.messages.context_processors.messages',
+		"BACKEND": "django.template.backends.django.DjangoTemplates",
+		"DIRS": [],
+		"APP_DIRS": True,
+		"OPTIONS": {
+			"context_processors": [
+				"django.template.context_processors.debug",
+				"django.template.context_processors.request",
+				"django.contrib.auth.context_processors.auth",
+				"django.contrib.messages.context_processors.messages",
 			],
 		},
 	},
 ]
 
-WSGI_APPLICATION = 'ftt.wsgi.application'
+WSGI_APPLICATION = "ftt.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-	'default': {
-		'ENGINE': 'django.db.backends.sqlite3',
-		'NAME': BASE_DIR / 'db.sqlite3',
-	}
+	"default": {
+		"ENGINE": "django.db.backends.sqlite3",
+		"NAME": BASE_DIR / "db.sqlite3",
+	},
 }
 
 
@@ -112,16 +112,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
 	{
-		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+		"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
 	},
 	{
-		'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+		"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
 	},
 	{
-		'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+		"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
 	},
 	{
-		'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+		"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
 	},
 ]
 
@@ -129,9 +129,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'America/Sao_Paulo'
+TIME_ZONE = "America/Sao_Paulo"
 
 USE_I18N = True
 
@@ -141,108 +141,106 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = path.join(BASE_DIR, 'media')
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = "core.User"
 
 
 REST_FRAMEWORK = {
-	'DEFAULT_AUTHENTICATION_CLASSES': [
-		'rest_framework_simplejwt.authentication.JWTAuthentication',
+	"DEFAULT_AUTHENTICATION_CLASSES": [
+		"rest_framework_simplejwt.authentication.JWTAuthentication",
 	],
-	'DEFAULT_PERMISSION_CLASSES': [
-		'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+	"DEFAULT_PERMISSION_CLASSES": [
+		"rest_framework.permissions.IsAuthenticatedOrReadOnly"
 		if DEBUG
-		else 'rest_framework.permissions.IsAuthenticated',
+		else "rest_framework.permissions.IsAuthenticated",
 	],
-	'DEFAULT_FILTER_BACKENDS': [
-		'django_filters.rest_framework.DjangoFilterBackend',
-		'rest_framework.filters.OrderingFilter',
-		'rest_framework.filters.SearchFilter',
+	"DEFAULT_FILTER_BACKENDS": [
+		"django_filters.rest_framework.DjangoFilterBackend",
+		"rest_framework.filters.OrderingFilter",
+		"rest_framework.filters.SearchFilter",
 	],
-	'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-	'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-	'PAGE_SIZE': 20,
+	"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+	"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+	"PAGE_SIZE": 20,
 }
 
 SPECTACULAR_SETTINGS = {
-	'TITLE': 'Fantasy Trash Talk API',
-	'DESCRIPTION': 'A comprehensive REST API for managing dynasty-style fantasy basketball leagues',
-	'VERSION': '1.0.0',
-	'SERVE_INCLUDE_SCHEMA': False,
-	'COMPONENT_SPLIT_REQUEST': True,
-	'SCHEMA_PATH_PREFIX': '/api/',
-	'TAGS': [
+	"TITLE": "Fantasy Trash Talk API",
+	"DESCRIPTION": "A comprehensive REST API for managing dynasty-style fantasy basketball leagues",
+	"VERSION": "1.0.0",
+	"SERVE_INCLUDE_SCHEMA": False,
+	"COMPONENT_SPLIT_REQUEST": True,
+	"SCHEMA_PATH_PREFIX": "/api/",
+	"TAGS": [
 		{
-			'name': 'Authentication',
-			'description': 'User registration and authentication endpoints',
+			"name": "Authentication",
+			"description": "User registration and authentication endpoints",
 		},
-		{'name': 'Users', 'description': 'User management operations'},
-		{'name': 'Teams', 'description': 'Team management and analytics'},
-		{'name': 'Players', 'description': 'Player roster management'},
-		{'name': 'Draft Capital', 'description': 'Draft pick assets and trading'},
-		{'name': 'Drafts', 'description': 'Draft events and live drafting'},
-		{'name': 'Draft Positions', 'description': 'Draft order and pick management'},
+		{"name": "Users", "description": "User management operations"},
+		{"name": "Teams", "description": "Team management and analytics"},
+		{"name": "Players", "description": "Player roster management"},
+		{"name": "Draft Capital", "description": "Draft pick assets and trading"},
+		{"name": "Drafts", "description": "Draft events and live drafting"},
+		{"name": "Draft Positions", "description": "Draft order and pick management"},
 	],
-	'SWAGGER_UI_SETTINGS': {
-		'deepLinking': True,
-		'persistAuthorization': True,
-		'displayOperationId': True,
+	"SWAGGER_UI_SETTINGS": {
+		"deepLinking": True,
+		"persistAuthorization": True,
+		"displayOperationId": True,
 	},
-	'PREPROCESSING_HOOKS': [],
-	'POSTPROCESSING_HOOKS': [],
+	"PREPROCESSING_HOOKS": [],
+	"POSTPROCESSING_HOOKS": [],
 }
 
 SIMPLE_JWT = {
-	'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-	'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-	'UPDATE_LAST_LOGIN': True,
-	'SIGNING_KEY': ENV.JWT_SIGNING_KEY if ENV.JWT_SIGNING_KEY else SECRET_KEY,
+	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+	"REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+	"UPDATE_LAST_LOGIN": True,
+	"SIGNING_KEY": ENV.JWT_SIGNING_KEY or SECRET_KEY,
 }
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 if not CORS_ALLOW_ALL_ORIGINS:
-	CORS_ALLOWED_ORIGINS = ['https://gtkacz.github.io', 'http://localhost']
+	CORS_ALLOWED_ORIGINS = ["https://gtkacz.github.io", "http://localhost"]
 
 CORS_ALLOW_HEADERS = (
 	*default_headers,
-	'bypass-tunnel-reminder',
+	"bypass-tunnel-reminder",
 )
 
-LEAGUE_SETTINGS = Box(
-	{
-		'SALARY_CAP': int(ENV.SALARY_CAP),
-		'MIN_PLAYER_CAP': int(ENV.MIN_PLAYER_CAP),
-		'MAX_PLAYER_CAP': int(ENV.MAX_PLAYER_CAP),
-	}
-)
+LEAGUE_SETTINGS = Box({
+	"SALARY_CAP": int(ENV.SALARY_CAP),
+	"MIN_PLAYER_CAP": int(ENV.MIN_PLAYER_CAP),
+	"MAX_PLAYER_CAP": int(ENV.MAX_PLAYER_CAP),
+})
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 LOGGING = {
-	'version': 1,
-	'disable_existing_loggers': False,
-	'handlers': {
-		'file': {
-			'level': 'INFO',
-			'class': 'logging.FileHandler',
-			'filename': 'auto_draft.log',
+	"version": 1,
+	"disable_existing_loggers": False,
+	"handlers": {
+		"file": {
+			"level": "INFO",
+			"class": "logging.FileHandler",
+			"filename": "auto_draft.log",
 		},
 	},
-	'loggers': {
-		'draft.management.commands.auto_draft_picker': {
-			'handlers': ['file'],
-			'level': 'INFO',
-			'propagate': True,
+	"loggers": {
+		"draft.management.commands.auto_draft_picker": {
+			"handlers": ["file"],
+			"level": "INFO",
+			"propagate": True,
 		},
 	},
 }

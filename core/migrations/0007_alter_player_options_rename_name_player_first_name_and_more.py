@@ -6,28 +6,28 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0006_alter_player_contract_duration_alter_player_salary'),
+		("core", "0006_alter_player_contract_duration_alter_player_salary"),
 	]
 
 	operations = [
 		migrations.AlterModelOptions(
-			name='player',
-			options={'ordering': ['last_name']},
+			name="player",
+			options={"ordering": ["last_name"]},
 		),
 		migrations.RenameField(
-			model_name='player',
-			old_name='name',
-			new_name='first_name',
+			model_name="player",
+			old_name="name",
+			new_name="first_name",
 		),
 		migrations.AddField(
-			model_name='player',
-			name='last_name',
-			field=models.CharField(default='', max_length=100),
+			model_name="player",
+			name="last_name",
+			field=models.CharField(default="", max_length=100),
 			preserve_default=False,
 		),
 		migrations.AlterField(
-			model_name='player',
-			name='contract_duration',
+			model_name="player",
+			name="contract_duration",
 			field=models.PositiveIntegerField(
 				blank=True,
 				null=True,

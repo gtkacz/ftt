@@ -5,17 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0017_player_slug'),
+		("core", "0017_player_slug"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='player',
-			name='team',
+			model_name="player",
+			name="team",
 		),
 		migrations.AlterField(
-			model_name='nbateam',
-			name='abbreviation',
+			model_name="nbateam",
+			name="abbreviation",
 			field=models.CharField(max_length=3, unique=True),
 		),
 	]

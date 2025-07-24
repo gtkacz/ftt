@@ -7,34 +7,34 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0003_player_nba_id'),
+		("core", "0003_player_nba_id"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='user',
-			name='is_admin',
+			model_name="user",
+			name="is_admin",
 		),
 		migrations.CreateModel(
-			name='Notification',
+			name="Notification",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('message', models.CharField(max_length=255)),
-				('is_read', models.BooleanField(default=False)),
-				('created_at', models.DateTimeField(auto_now_add=True)),
+				("message", models.CharField(max_length=255)),
+				("is_read", models.BooleanField(default=False)),
+				("created_at", models.DateTimeField(auto_now_add=True)),
 				(
-					'user',
+					"user",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='notifications',
+						related_name="notifications",
 						to=settings.AUTH_USER_MODEL,
 					),
 				),

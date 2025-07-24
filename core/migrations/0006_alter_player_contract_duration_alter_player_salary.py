@@ -6,13 +6,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0005_notification_updated_at_user_is_approved'),
+		("core", "0005_notification_updated_at_user_is_approved"),
 	]
 
 	operations = [
 		migrations.AlterField(
-			model_name='player',
-			name='contract_duration',
+			model_name="player",
+			name="contract_duration",
 			field=models.PositiveIntegerField(
 				blank=True,
 				null=True,
@@ -23,8 +23,8 @@ class Migration(migrations.Migration):
 			),
 		),
 		migrations.AlterField(
-			model_name='player',
-			name='salary',
+			model_name="player",
+			name="salary",
 			field=models.DecimalField(
 				blank=True,
 				decimal_places=2,

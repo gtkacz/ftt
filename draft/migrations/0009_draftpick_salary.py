@@ -5,15 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0008_pick_is_from_league_draft'),
+		("draft", "0008_pick_is_from_league_draft"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='draftpick',
-			name='salary',
-			field=models.IntegerField(
-				default=0, help_text='Salary cap hit for the selected player'
-			),
+			model_name="draftpick",
+			name="salary",
+			field=models.IntegerField(default=0, help_text="Salary cap hit for the selected player"),
 		),
 	]

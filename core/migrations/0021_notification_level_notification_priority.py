@@ -5,26 +5,26 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0020_remove_team_avatar'),
+		("core", "0020_remove_team_avatar"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='notification',
-			name='level',
+			model_name="notification",
+			name="level",
 			field=models.CharField(
-				choices=[('info', 'Info'), ('warning', 'Warning'), ('error', 'Error')],
-				default='info',
-				help_text='Notification level',
+				choices=[("info", "Info"), ("warning", "Warning"), ("error", "Error")],
+				default="info",
+				help_text="Notification level",
 				max_length=10,
 			),
 		),
 		migrations.AddField(
-			model_name='notification',
-			name='priority',
+			model_name="notification",
+			name="priority",
 			field=models.PositiveIntegerField(
 				default=1,
-				help_text='Priority of the notification, lower number means higher priority',
+				help_text="Priority of the notification, lower number means higher priority",
 			),
 		),
 	]

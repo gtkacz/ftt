@@ -5,20 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0004_remove_user_is_admin_notification'),
+		("core", "0004_remove_user_is_admin_notification"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='notification',
-			name='updated_at',
+			model_name="notification",
+			name="updated_at",
 			field=models.DateTimeField(auto_now=True),
 		),
 		migrations.AddField(
-			model_name='user',
-			name='is_approved',
-			field=models.BooleanField(
-				default=False, help_text='User is approved to participate in the league'
-			),
+			model_name="user",
+			name="is_approved",
+			field=models.BooleanField(default=False, help_text="User is approved to participate in the league"),
 		),
 	]

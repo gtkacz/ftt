@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0002_player_is_ir_player_is_to'),
+		("core", "0002_player_is_ir_player_is_to"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='player',
-			name='nba_id',
+			model_name="player",
+			name="nba_id",
 			field=models.CharField(blank=True, max_length=20, null=True, unique=True),
 		),
 	]

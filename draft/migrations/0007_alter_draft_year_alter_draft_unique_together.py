@@ -5,17 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0006_rename_is_snake_draft_is_league_draft'),
+		("draft", "0006_rename_is_snake_draft_is_league_draft"),
 	]
 
 	operations = [
 		migrations.AlterField(
-			model_name='draft',
-			name='year',
+			model_name="draft",
+			name="year",
 			field=models.PositiveIntegerField(),
 		),
 		migrations.AlterUniqueTogether(
-			name='draft',
-			unique_together={('year', 'is_league_draft')},
+			name="draft",
+			unique_together={("year", "is_league_draft")},
 		),
 	]

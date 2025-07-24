@@ -3,7 +3,6 @@ import threading
 from datetime import datetime, timedelta
 from typing import Optional
 
-from django.conf import settings
 from django.core.management import call_command
 from django.utils import timezone
 
@@ -23,7 +22,7 @@ class AutoDraftScheduler:
 				return
 
 			self.running = True
-			logger.debug('Smart auto draft scheduler started')
+			logger.debug("Smart auto draft scheduler started")
 
 			# Delay initial database access to avoid AppConfig.ready() warning
 			self.timer = threading.Timer(1.0, self._process_and_schedule)
@@ -37,7 +36,7 @@ class AutoDraftScheduler:
 			if self.timer:
 				self.timer.cancel()
 				self.timer = None
-			logger.debug('Smart auto draft scheduler stopped')
+			logger.debug("Smart auto draft scheduler stopped")
 
 	def _process_and_schedule(self):
 		"""Process current picks and schedule next wake time"""
@@ -46,7 +45,7 @@ class AutoDraftScheduler:
 
 		try:
 			# Process any expired picks first
-			call_command('auto_draft_picker')
+			call_command("auto_draft_picker")
 
 			# Calculate next wake time
 			next_wake_time = self._calculate_next_wake_time()
@@ -55,9 +54,7 @@ class AutoDraftScheduler:
 				delay_seconds = (next_wake_time - timezone.now()).total_seconds()
 				delay_seconds = max(1, delay_seconds)  # Minimum 1 second delay
 
-				logger.warning(
-					f'Scheduling next auto-pick check in {delay_seconds:.1f} seconds at {next_wake_time}'
-				)
+				logger.warning(f"Scheduling next auto-pick check in {delay_seconds:.1f} seconds at {next_wake_time}")
 
 				# Schedule next execution
 				self.timer = threading.Timer(delay_seconds, self._process_and_schedule)
@@ -65,13 +62,13 @@ class AutoDraftScheduler:
 				self.timer.start()
 			else:
 				# No active picks, check again in 1 hour
-				logger.debug('No active draft picks found, checking again in 1 hour')
+				logger.debug("No active draft picks found, checking again in 1 hour")
 				self.timer = threading.Timer(3600, self._process_and_schedule)
 				self.timer.daemon = True
 				self.timer.start()
 
 		except Exception as e:
-			logger.error(f'Error in smart auto draft scheduler: {str(e)}')
+			logger.error(f"Error in smart auto draft scheduler: {e!s}")
 			# On error, retry in 1 minute
 			if self.running:
 				self.timer = threading.Timer(60, self._process_and_schedule)
@@ -84,17 +81,13 @@ class AutoDraftScheduler:
 			from draft.models import Draft, DraftPick
 
 			# Get all active drafts
-			active_drafts = Draft.objects.filter(
-				is_completed=False, starts_at__lte=timezone.now()
-			)
+			active_drafts = Draft.objects.filter(is_completed=False, starts_at__lte=timezone.now())
 
 			earliest_expiry = None
 
 			for draft in active_drafts:
 				# Find current pick for this draft
-				current_pick = DraftPick.objects.filter(
-					draft=draft, is_current=True, is_pick_made=False
-				).first()
+				current_pick = DraftPick.objects.filter(draft=draft, is_current=True, is_pick_made=False).first()
 
 				if not current_pick or not current_pick.started_at:
 					continue
@@ -102,15 +95,13 @@ class AutoDraftScheduler:
 				# Calculate when this pick will expire
 				pick_expiry = self._calculate_pick_expiry_time(current_pick)
 
-				if pick_expiry and (
-					not earliest_expiry or pick_expiry < earliest_expiry
-				):
+				if pick_expiry and (not earliest_expiry or pick_expiry < earliest_expiry):
 					earliest_expiry = pick_expiry
 
 			return earliest_expiry
 
 		except Exception as e:
-			logger.error(f'Error calculating next wake time: {str(e)}')
+			logger.error(f"Error calculating next wake time: {e!s}")
 			return None
 
 	def _calculate_pick_expiry_time(self, draft_pick) -> Optional[datetime]:
@@ -134,14 +125,10 @@ class AutoDraftScheduler:
 
 				# Create today's active window
 				window_start = timezone.make_aware(
-					datetime.combine(
-						current_date, datetime.min.time().replace(hour=lower_bound)
-					)
+					datetime.combine(current_date, datetime.min.time().replace(hour=lower_bound)),
 				)
 				window_end = timezone.make_aware(
-					datetime.combine(
-						current_date, datetime.min.time().replace(hour=upper_bound)
-					)
+					datetime.combine(current_date, datetime.min.time().replace(hour=upper_bound)),
 				)
 
 				# If we're before today's window, jump to window start
@@ -152,9 +139,7 @@ class AutoDraftScheduler:
 				elif current_time >= window_end:
 					next_day = current_date + timedelta(days=1)
 					current_time = timezone.make_aware(
-						datetime.combine(
-							next_day, datetime.min.time().replace(hour=lower_bound)
-						)
+						datetime.combine(next_day, datetime.min.time().replace(hour=lower_bound)),
 					)
 					continue
 
@@ -171,15 +156,13 @@ class AutoDraftScheduler:
 				if remaining_seconds > 0 and time_to_consume == window_remaining:
 					next_day = current_time.date() + timedelta(days=1)
 					current_time = timezone.make_aware(
-						datetime.combine(
-							next_day, datetime.min.time().replace(hour=lower_bound)
-						)
+						datetime.combine(next_day, datetime.min.time().replace(hour=lower_bound)),
 					)
 
 			return current_time
 
 		except Exception as e:
-			logger.error(f'Error calculating pick expiry time: {str(e)}')
+			logger.error(f"Error calculating pick expiry time: {e!s}")
 			return None
 
 

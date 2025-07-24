@@ -5,18 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0001_initial'),
+		("core", "0001_initial"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='player',
-			name='is_ir',
-			field=models.BooleanField(default=False, help_text='Injury Reserve'),
+			model_name="player",
+			name="is_ir",
+			field=models.BooleanField(default=False, help_text="Injury Reserve"),
 		),
 		migrations.AddField(
-			model_name='player',
-			name='is_to',
-			field=models.BooleanField(default=False, help_text='Team Option'),
+			model_name="player",
+			name="is_to",
+			field=models.BooleanField(default=False, help_text="Team Option"),
 		),
 	]

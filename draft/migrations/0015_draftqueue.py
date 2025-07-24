@@ -6,59 +6,57 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0020_remove_team_avatar'),
-		('draft', '0014_future_picks'),
+		("core", "0020_remove_team_avatar"),
+		("draft", "0014_future_picks"),
 	]
 
 	operations = [
 		migrations.CreateModel(
-			name='DraftQueue',
+			name="DraftQueue",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
 				(
-					'autopick_enabled',
-					models.BooleanField(
-						default=False, help_text='Enable auto-pick from queue'
-					),
+					"autopick_enabled",
+					models.BooleanField(default=False, help_text="Enable auto-pick from queue"),
 				),
-				('created_at', models.DateTimeField(auto_now_add=True)),
-				('updated_at', models.DateTimeField(auto_now=True)),
+				("created_at", models.DateTimeField(auto_now_add=True)),
+				("updated_at", models.DateTimeField(auto_now=True)),
 				(
-					'queue_items',
+					"queue_items",
 					models.JSONField(
 						blank=True,
 						default=list,
-						help_text='List of player IDs in the draft queue',
+						help_text="List of player IDs in the draft queue",
 						null=True,
 					),
 				),
 				(
-					'draft',
+					"draft",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='team_queues',
-						to='draft.draft',
+						related_name="team_queues",
+						to="draft.draft",
 					),
 				),
 				(
-					'team',
+					"team",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='draft_queues',
-						to='core.team',
+						related_name="draft_queues",
+						to="core.team",
 					),
 				),
 			],
 			options={
-				'unique_together': {('team', 'draft')},
+				"unique_together": {("team", "draft")},
 			},
 		),
 	]

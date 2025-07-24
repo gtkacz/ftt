@@ -3,6 +3,7 @@ URL configuration for ftt project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.0/topics/http/urls/
+
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -19,28 +20,27 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
-                                   SpectacularSwaggerView)
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from ftt.views import HealthCheckViewSet
 
 urlpatterns = [
-	path('admin/', admin.site.urls),
-	path('api/', include('core.urls')),
-	path('api/', include('draft.urls')),
+	path("admin/", admin.site.urls),
+	path("api/", include("core.urls")),
+	path("api/", include("draft.urls")),
 	path(
-		'api/healthcheck/',
-		HealthCheckViewSet.as_view({'get': 'list'}),
-		name='healthcheck',
+		"api/healthcheck/",
+		HealthCheckViewSet.as_view({"get": "list"}),
+		name="healthcheck",
 	),
 	# OpenAPI schema endpoints
-	path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+	path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
 	path(
-		'api/docs/',
-		SpectacularSwaggerView.as_view(url_name='schema'),
-		name='swagger-ui',
+		"api/docs/",
+		SpectacularSwaggerView.as_view(url_name="schema"),
+		name="swagger-ui",
 	),
-	path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+	path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
 
 if settings.DEBUG:

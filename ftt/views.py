@@ -14,4 +14,4 @@ class HealthCheckViewSet(ViewSet):
 		Returns:
 			Response: A response indicating the server is up.
 		"""
-		return Response(data='Server is up.', status=status.HTTP_200_OK)
+		return Response(data="Server is up.", status=status.HTTP_200_OK)

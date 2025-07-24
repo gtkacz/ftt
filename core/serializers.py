@@ -10,24 +10,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(
 		write_only=True,
 		min_length=8,
-		help_text='Password must be at least 8 characters long',
+		help_text="Password must be at least 8 characters long",
 	)
-	password_confirm = serializers.CharField(
-		write_only=True, help_text='Must match the password field'
-	)
+	password_confirm = serializers.CharField(write_only=True, help_text="Must match the password field")
 
 	class Meta:
 		model = User
-		fields = '__all__'
+		fields = "__all__"
 
 	def validate(self, attrs):
-		if attrs['password'] != attrs['password_confirm']:
+		if attrs["password"] != attrs["password_confirm"]:
 			raise serializers.ValidationError("Passwords don't match")
 		return attrs
 
 	def create(self, validated_data):
-		validated_data.pop('password_confirm')
-		password = validated_data.pop('password')
+		validated_data.pop("password_confirm")
+		password = validated_data.pop("password")
 		user = User.objects.create_user(**validated_data)
 		user.set_password(password)
 		user.save()
@@ -38,24 +36,22 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(
 		write_only=True,
 		min_length=8,
-		help_text='Password must be at least 8 characters long',
+		help_text="Password must be at least 8 characters long",
 	)
-	password_confirm = serializers.CharField(
-		write_only=True, help_text='Must match the password field'
-	)
+	password_confirm = serializers.CharField(write_only=True, help_text="Must match the password field")
 
 	class Meta:
 		model = User
-		fields = '__all__'
+		fields = "__all__"
 
 	def validate(self, attrs):
-		if attrs['password'] != attrs['password_confirm']:
+		if attrs["password"] != attrs["password_confirm"]:
 			raise serializers.ValidationError("Passwords don't match")
 		return attrs
 
 	def update(self, instance, validated_data):
-		validated_data.pop('password_confirm', None)
-		password = validated_data.pop('password', None)
+		validated_data.pop("password_confirm", None)
+		password = validated_data.pop("password", None)
 
 		for attr, value in validated_data.items():
 			setattr(instance, attr, value)
@@ -70,42 +66,38 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 class NBATeamSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = NBATeam
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at"]
 
 
 class TeamSerializer(serializers.ModelSerializer):
 	owner_username = serializers.CharField(
-		source='owner.username', read_only=True, help_text='Username of the team owner'
+		source="owner.username", read_only=True, help_text="Username of the team owner",
 	)
-	total_salary = serializers.SerializerMethodField(
-		help_text='Total salary of all players on the team'
-	)
-	total_players = serializers.SerializerMethodField(
-		help_text='Number of players currently on the team'
-	)
+	total_salary = serializers.SerializerMethodField(help_text="Total salary of all players on the team")
+	total_players = serializers.SerializerMethodField(help_text="Number of players currently on the team")
 	available_salary = serializers.SerializerMethodField(
-		help_text='Available salary cap after accounting for current team salary'
+		help_text="Available salary cap after accounting for current team salary",
 	)
 	available_players = serializers.SerializerMethodField(
-		help_text='Number of available player slots based on current roster and league settings'
+		help_text="Number of available player slots based on current roster and league settings",
 	)
 	can_bid = serializers.SerializerMethodField(
-		help_text='Whether the team can bid on players based on current roster and salary cap'
+		help_text="Whether the team can bid on players based on current roster and salary cap",
 	)
 	players = serializers.SerializerMethodField(
-		help_text='List of players currently on the team',
+		help_text="List of players currently on the team",
 	)
 	current_picks = PickSerializer(
 		many=True,
 		read_only=True,
-		help_text='List of draft picks owned by the team',
+		help_text="List of draft picks owned by the team",
 	)
 
 	class Meta:
 		model = Team
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at', 'total_salary', 'total_players']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at", "total_salary", "total_players"]
 
 	def get_total_salary(self, obj: Team) -> float:
 		return obj.total_salary()
@@ -129,75 +121,69 @@ class TeamSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
 	team = TeamSerializer(
 		read_only=True,
-		help_text='Team information for the user, if they own a team',
+		help_text="Team information for the user, if they own a team",
 	)
 
 	class Meta:
 		model = User
-		fields = '__all__'
-		read_only_fields = ['id', 'date_joined']
+		fields = "__all__"
+		read_only_fields = ["id", "date_joined"]
 
 
 class ContractSerializer(serializers.ModelSerializer):
 	team = TeamSerializer(
 		read_only=True,
-		help_text='Team information for the contract, if applicable',
+		help_text="Team information for the contract, if applicable",
 	)
 
 	class Meta:
 		model = Contract
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at', 'team']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at", "team"]
 
 
 class SimplePlayerSerializer(serializers.ModelSerializer):
 	team_name = serializers.CharField(
-		source='team.name',
+		source="team.name",
 		read_only=True,
-		help_text='Name of the team this player belongs to',
+		help_text="Name of the team this player belongs to",
 	)
-	photo = serializers.SerializerMethodField(
-		help_text='URL to the player photo, if available'
-	)
-	real_team = serializers.SerializerMethodField(
-		help_text='Real NBA team this player is associated with, if any'
-	)
+	photo = serializers.SerializerMethodField(help_text="URL to the player photo, if available")
+	real_team = serializers.SerializerMethodField(help_text="Real NBA team this player is associated with, if any")
 	relevancy = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Relevancy score of the player based on performance metrics',
+		help_text="Relevancy score of the player based on performance metrics",
 	)
 	contract = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Contract information for the player, if they are part of a team',
+		help_text="Contract information for the player, if they are part of a team",
 	)
 	team = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Team information for the player, if they are part of a team',
+		help_text="Team information for the player, if they are part of a team",
 	)
 
 	def get_contract(self, obj: Player) -> dict:
-		if hasattr(obj, 'contract'):
-			return django_obj_to_dict(obj.contract, exclude_fields=['team'])
+		if hasattr(obj, "contract"):
+			return django_obj_to_dict(obj.contract, exclude_fields=["team"])
 
 		return {}
 
 	def get_team(self, obj: Player) -> dict:
-		if hasattr(obj, 'contract'):
-			return django_obj_to_dict(
-				obj.contract.team, exclude_fields=['players', 'current_picks']
-			)
+		if hasattr(obj, "contract"):
+			return django_obj_to_dict(obj.contract.team, exclude_fields=["players", "current_picks"])
 
 		return {}
 
 	def get_real_team(self, obj: Player) -> str:
 		if obj.real_team:
 			return django_obj_to_dict(obj.real_team)
-		return ''
+		return ""
 
 	def get_photo(self, obj: Player) -> str:
 		if obj.nba_id:
-			return f'https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png'
-		return ''
+			return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png"
+		return ""
 
 	def get_relevancy(self, obj: Player) -> float:
 		try:
@@ -208,19 +194,15 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 				or not obj.metadata
 				or not isinstance(obj.metadata, str)
 				or not obj.metadata.strip()
-				or obj.metadata == 'null'
+				or obj.metadata == "null"
 			):
 				return 0.0
 
-			metadata = loads(obj.metadata.lower().replace('nan', 'null'))
+			metadata = loads(obj.metadata.lower().replace("nan", "null"))
 
 			return round(
-				float(metadata.get('fpts', 0.0))
-				or (
-					float(metadata.get('pts', 0.0))
-					+ float(metadata.get('ast', 0.0))
-					+ float(metadata.get('reb', 0.0))
-				)
+				float(metadata.get("fpts", 0.0))
+				or (float(metadata.get("pts", 0.0)) + float(metadata.get("ast", 0.0)) + float(metadata.get("reb", 0.0)))
 				/ 2.0,
 				1,
 			)
@@ -229,43 +211,39 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Player
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at"]
 
 
 class PlayerSerializer(SimplePlayerSerializer):
 	team_name = serializers.CharField(
-		source='team.name',
+		source="team.name",
 		read_only=True,
-		help_text='Name of the team this player belongs to',
+		help_text="Name of the team this player belongs to",
 	)
-	photo = serializers.SerializerMethodField(
-		help_text='URL to the player photo, if available'
-	)
-	real_team = serializers.SerializerMethodField(
-		help_text='Real NBA team this player is associated with, if any'
-	)
+	photo = serializers.SerializerMethodField(help_text="URL to the player photo, if available")
+	real_team = serializers.SerializerMethodField(help_text="Real NBA team this player is associated with, if any")
 	relevancy = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Relevancy score of the player based on performance metrics',
+		help_text="Relevancy score of the player based on performance metrics",
 	)
 	contract = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Contract information for the player, if they are part of a team',
+		help_text="Contract information for the player, if they are part of a team",
 	)
 	team = serializers.SerializerMethodField(
 		read_only=True,
-		help_text='Team information for the player, if they are part of a team',
+		help_text="Team information for the player, if they are part of a team",
 	)
 
 	def get_contract(self, obj: Player) -> dict:
-		if hasattr(obj, 'contract'):
+		if hasattr(obj, "contract"):
 			return ContractSerializer(obj.contract).data
 
 		return {}
 
 	def get_team(self, obj: Player) -> dict:
-		if hasattr(obj, 'contract'):
+		if hasattr(obj, "contract"):
 			return TeamSerializer(obj.contract.team).data
 
 		return {}
@@ -273,12 +251,12 @@ class PlayerSerializer(SimplePlayerSerializer):
 	def get_real_team(self, obj: Player) -> str:
 		if obj.real_team:
 			return django_obj_to_dict(obj.real_team)
-		return ''
+		return ""
 
 	def get_photo(self, obj: Player) -> str:
 		if obj.nba_id:
-			return f'https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png'
-		return ''
+			return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png"
+		return ""
 
 	def get_relevancy(self, obj: Player) -> float:
 		try:
@@ -289,18 +267,16 @@ class PlayerSerializer(SimplePlayerSerializer):
 				or not obj.metadata
 				or not isinstance(obj.metadata, str)
 				or not obj.metadata.strip()
-				or obj.metadata == 'null'
+				or obj.metadata == "null"
 			):
 				return 0.0
 
-			metadata = loads(obj.metadata.lower().replace('nan', 'null'))
+			metadata = loads(obj.metadata.lower().replace("nan", "null"))
 
 			return round(
-				float(metadata.get('fpts', 0.0))
+				float(metadata.get("fpts", 0.0))
 				or (
-					float(metadata.get('pts', 0.0))
-					+ float(metadata.get('ast', 0.0))
-					+ float(metadata.get('reb', 0.0))
+					float(metadata.get("pts", 0.0)) + float(metadata.get("ast", 0.0)) + float(metadata.get("reb", 0.0))
 				),
 				1,
 			)
@@ -309,16 +285,16 @@ class PlayerSerializer(SimplePlayerSerializer):
 
 	class Meta:
 		model = Player
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Notification
-		fields = '__all__'
-		read_only_fields = ['id', 'created_at', 'updated_at']
+		fields = "__all__"
+		read_only_fields = ["id", "created_at", "updated_at"]
 		extra_kwargs = {
-			'user': {'required': False, 'allow_null': True},
-			'read': {'default': False},
+			"user": {"required": False, "allow_null": True},
+			"read": {"default": False},
 		}

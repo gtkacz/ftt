@@ -6,19 +6,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0015_remove_player_is_rfa_remove_player_is_to_and_more'),
+		("core", "0015_remove_player_is_rfa_remove_player_is_to_and_more"),
 	]
 
 	operations = [
 		migrations.AlterField(
-			model_name='contract',
-			name='player',
+			model_name="contract",
+			name="player",
 			field=models.OneToOneField(
 				blank=True,
 				null=True,
 				on_delete=django.db.models.deletion.CASCADE,
-				related_name='contract',
-				to='core.player',
+				related_name="contract",
+				to="core.player",
 			),
 		),
 	]

@@ -4,56 +4,56 @@ from . import views
 
 urlpatterns = [
 	# Pick endpoints
-	path('picks/', views.PickListCreateView.as_view(), name='pick-list-create'),
-	path('picks/<int:pk>/', views.PickDetailView.as_view(), name='pick-detail'),
+	path("picks/", views.PickListCreateView.as_view(), name="pick-list-create"),
+	path("picks/<int:pk>/", views.PickDetailView.as_view(), name="pick-detail"),
 	# Draft endpoints
-	path('drafts/', views.DraftListCreateView.as_view(), name='draft-list-create'),
-	path('drafts/<int:pk>/', views.DraftDetailView.as_view(), name='draft-detail'),
+	path("drafts/", views.DraftListCreateView.as_view(), name="draft-list-create"),
+	path("drafts/<int:pk>/", views.DraftDetailView.as_view(), name="draft-detail"),
 	path(
-		'drafts/<int:draft_id>/generate-order/',
+		"drafts/<int:draft_id>/generate-order/",
 		views.generate_draft_order,
-		name='generate-draft-order',
+		name="generate-draft-order",
 	),
-	path('drafts/<int:draft_id>/board/', views.draft_board, name='draft-board'),
+	path("drafts/<int:draft_id>/board/", views.draft_board, name="draft-board"),
 	# Draft Position endpoints
 	path(
-		'draft/positions/',
+		"draft/positions/",
 		views.DraftPositionListCreateView.as_view(),
-		name='draft-position-list-create',
+		name="draft-position-list-create",
 	),
 	path(
-		'draft/positions/<int:pk>/',
+		"draft/positions/<int:pk>/",
 		views.DraftPositionDetailView.as_view(),
-		name='draft-position-detail',
+		name="draft-position-detail",
 	),
 	path(
-		'drafts/<int:pk>/picks/',
+		"drafts/<int:pk>/picks/",
 		views.draft_picks_view,
-		name='lottery',
+		name="lottery",
 	),
 	path(
-		'drafts/<int:pk>/lottery/start/',
+		"drafts/<int:pk>/lottery/start/",
 		views.start_lottery_view,
-		name='start-lottery',
+		name="start-lottery",
 	),
 	path(
-		'drafts/make-pick/<int:pk>/',
+		"drafts/make-pick/<int:pk>/",
 		views.make_pick,
-		name='make-pick',
+		name="make-pick",
 	),
 	path(
-		'drafts/<int:draft>/queues/',
+		"drafts/<int:draft>/queues/",
 		views.DraftQueueListCreateView.as_view(),
-		name='draft-queue-list-create',
+		name="draft-queue-list-create",
 	),
 	path(
-		'drafts/<int:draft>/queues/<int:pk>/',
+		"drafts/<int:draft>/queues/<int:pk>/",
 		views.DraftQueueListCreateView.as_view(),
-		name='draft-queue-update',
+		name="draft-queue-update",
 	),
 	path(
-		'drafts/queues/<int:pk>/reorder/',
+		"drafts/queues/<int:pk>/reorder/",
 		views.reorder_queue,
-		name='reorder-draft-queue',
+		name="reorder-draft-queue",
 	),
 ]

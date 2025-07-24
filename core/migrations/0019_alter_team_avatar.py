@@ -5,18 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0018_remove_player_team_alter_nbateam_abbreviation'),
+		("core", "0018_remove_player_team_alter_nbateam_abbreviation"),
 	]
 
 	operations = [
 		migrations.AlterField(
-			model_name='team',
-			name='avatar',
+			model_name="team",
+			name="avatar",
 			field=models.ImageField(
 				blank=True,
-				default='team_avatars/logo.png',
+				default="team_avatars/logo.png",
 				null=True,
-				upload_to='team_avatars/',
+				upload_to="team_avatars/",
 			),
 		),
 	]

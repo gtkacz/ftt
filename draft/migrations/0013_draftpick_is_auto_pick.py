@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0012_draftpick_only_one_current_pick_per_draft'),
+		("draft", "0012_draftpick_only_one_current_pick_per_draft"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='draftpick',
-			name='is_auto_pick',
+			model_name="draftpick",
+			name="is_auto_pick",
 			field=models.BooleanField(default=False),
 		),
 	]

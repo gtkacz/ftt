@@ -7,55 +7,55 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0010_player_metadata'),
+		("core", "0010_player_metadata"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='player',
-			name='contract_duration',
+			model_name="player",
+			name="contract_duration",
 		),
 		migrations.RemoveField(
-			model_name='player',
-			name='salary',
+			model_name="player",
+			name="salary",
 		),
 		migrations.CreateModel(
-			name='Contract',
+			name="Contract",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('start_year', models.PositiveIntegerField()),
+				("start_year", models.PositiveIntegerField()),
 				(
-					'duration',
+					"duration",
 					models.PositiveIntegerField(
 						validators=[
 							django.core.validators.MinValueValidator(1),
 							django.core.validators.MaxValueValidator(4),
-						]
+						],
 					),
 				),
-				('salary', models.DecimalField(decimal_places=2, max_digits=10)),
+				("salary", models.DecimalField(decimal_places=2, max_digits=10)),
 				(
-					'player',
+					"player",
 					models.OneToOneField(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='contract',
-						to='core.player',
+						related_name="contract",
+						to="core.player",
 					),
 				),
 				(
-					'team',
+					"team",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='contracts',
-						to='core.team',
+						related_name="contracts",
+						to="core.team",
 					),
 				),
 			],

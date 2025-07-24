@@ -2,8 +2,8 @@ from django.db import migrations
 
 
 def data_migration(apps, schema_editor):
-	Team = apps.get_model('core', 'Team')
-	Pick = apps.get_model('draft', 'Pick')
+	Team = apps.get_model("core", "Team")
+	Pick = apps.get_model("draft", "Pick")
 
 	for year in range(2026, 2029):
 		for team in Team.objects.all():
@@ -18,8 +18,8 @@ def data_migration(apps, schema_editor):
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0020_remove_team_avatar'),
-		('draft', '0013_draftpick_is_auto_pick'),
+		("core", "0020_remove_team_avatar"),
+		("draft", "0013_draftpick_is_auto_pick"),
 	]
 
 	operations = [

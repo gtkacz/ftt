@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0009_nbateam_alter_player_real_team'),
+		("core", "0009_nbateam_alter_player_real_team"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='player',
-			name='metadata',
+			model_name="player",
+			name="metadata",
 			field=models.JSONField(blank=True, default=dict, null=True),
 		),
 	]

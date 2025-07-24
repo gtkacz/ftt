@@ -5,15 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0007_alter_draft_year_alter_draft_unique_together'),
+		("draft", "0007_alter_draft_year_alter_draft_unique_together"),
 	]
 
 	operations = [
 		migrations.AddField(
-			model_name='pick',
-			name='is_from_league_draft',
-			field=models.BooleanField(
-				default=False, help_text='Indicates if this pick is from a league draft'
-			),
+			model_name="pick",
+			name="is_from_league_draft",
+			field=models.BooleanField(default=False, help_text="Indicates if this pick is from a league draft"),
 		),
 	]

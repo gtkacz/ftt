@@ -6,36 +6,36 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0008_player_real_team'),
+		("core", "0008_player_real_team"),
 	]
 
 	operations = [
 		migrations.CreateModel(
-			name='NBATeam',
+			name="NBATeam",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('city', models.CharField(max_length=100)),
-				('name', models.CharField(max_length=100)),
-				('abbreviation', models.CharField(max_length=10)),
+				("city", models.CharField(max_length=100)),
+				("name", models.CharField(max_length=100)),
+				("abbreviation", models.CharField(max_length=10)),
 			],
 		),
 		migrations.AlterField(
-			model_name='player',
-			name='real_team',
+			model_name="player",
+			name="real_team",
 			field=models.ForeignKey(
 				blank=True,
 				null=True,
 				on_delete=django.db.models.deletion.SET_NULL,
-				related_name='players',
-				to='core.nbateam',
+				related_name="players",
+				to="core.nbateam",
 			),
 		),
 	]

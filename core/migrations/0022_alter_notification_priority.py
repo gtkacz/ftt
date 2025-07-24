@@ -5,16 +5,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0021_notification_level_notification_priority'),
+		("core", "0021_notification_level_notification_priority"),
 	]
 
 	operations = [
 		migrations.AlterField(
-			model_name='notification',
-			name='priority',
+			model_name="notification",
+			name="priority",
 			field=models.PositiveIntegerField(
 				default=1,
-				help_text='Priority of the notification, higher number means higher priority',
+				help_text="Priority of the notification, higher number means higher priority",
 			),
 		),
 	]

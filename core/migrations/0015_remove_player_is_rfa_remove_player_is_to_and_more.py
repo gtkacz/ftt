@@ -7,50 +7,48 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('core', '0014_nbateam_datamigration'),
+		("core", "0014_nbateam_datamigration"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='player',
-			name='is_rfa',
+			model_name="player",
+			name="is_rfa",
 		),
 		migrations.RemoveField(
-			model_name='player',
-			name='is_to',
+			model_name="player",
+			name="is_to",
 		),
 		migrations.AddField(
-			model_name='contract',
-			name='created_at',
-			field=models.DateTimeField(
-				auto_now_add=True, default=django.utils.timezone.now
-			),
+			model_name="contract",
+			name="created_at",
+			field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
 			preserve_default=False,
 		),
 		migrations.AddField(
-			model_name='contract',
-			name='is_rfa',
-			field=models.BooleanField(default=False, help_text='Restricted Free Agent'),
+			model_name="contract",
+			name="is_rfa",
+			field=models.BooleanField(default=False, help_text="Restricted Free Agent"),
 		),
 		migrations.AddField(
-			model_name='contract',
-			name='is_to',
-			field=models.BooleanField(default=False, help_text='Team Option'),
+			model_name="contract",
+			name="is_to",
+			field=models.BooleanField(default=False, help_text="Team Option"),
 		),
 		migrations.AddField(
-			model_name='contract',
-			name='updated_at',
+			model_name="contract",
+			name="updated_at",
 			field=models.DateTimeField(auto_now=True),
 		),
 		migrations.AlterField(
-			model_name='contract',
-			name='team',
+			model_name="contract",
+			name="team",
 			field=models.ForeignKey(
 				blank=True,
 				null=True,
 				on_delete=django.db.models.deletion.CASCADE,
-				related_name='contracts',
-				to='core.team',
+				related_name="contracts",
+				to="core.team",
 			),
 		),
 	]

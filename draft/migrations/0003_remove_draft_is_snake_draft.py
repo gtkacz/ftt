@@ -5,12 +5,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 	dependencies = [
-		('draft', '0002_remove_draft_draft_order_draft_is_snake_draft_and_more'),
+		("draft", "0002_remove_draft_draft_order_draft_is_snake_draft_and_more"),
 	]
 
 	operations = [
 		migrations.RemoveField(
-			model_name='draft',
-			name='is_snake_draft',
+			model_name="draft",
+			name="is_snake_draft",
 		),
 	]

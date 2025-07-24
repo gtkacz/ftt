@@ -8,87 +8,83 @@ class Migration(migrations.Migration):
 	initial = True
 
 	dependencies = [
-		('core', '0001_initial'),
+		("core", "0001_initial"),
 	]
 
 	operations = [
 		migrations.CreateModel(
-			name='Pick',
+			name="Pick",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('draft_year', models.PositiveIntegerField()),
-				('round_number', models.PositiveIntegerField()),
+				("draft_year", models.PositiveIntegerField()),
+				("round_number", models.PositiveIntegerField()),
 				(
-					'protections',
+					"protections",
 					models.TextField(
 						blank=True,
-						help_text='Description of pick protections',
+						help_text="Description of pick protections",
 						null=True,
 					),
 				),
-				('created_at', models.DateTimeField(auto_now_add=True)),
-				('updated_at', models.DateTimeField(auto_now=True)),
+				("created_at", models.DateTimeField(auto_now_add=True)),
+				("updated_at", models.DateTimeField(auto_now=True)),
 				(
-					'current_team',
+					"current_team",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='current_picks',
-						to='core.team',
+						related_name="current_picks",
+						to="core.team",
 					),
 				),
 				(
-					'original_team',
+					"original_team",
 					models.ForeignKey(
 						on_delete=django.db.models.deletion.CASCADE,
-						related_name='original_picks',
-						to='core.team',
+						related_name="original_picks",
+						to="core.team",
 					),
 				),
 			],
 			options={
-				'ordering': ['draft_year', 'round_number'],
-				'unique_together': {('original_team', 'draft_year', 'round_number')},
+				"ordering": ["draft_year", "round_number"],
+				"unique_together": {("original_team", "draft_year", "round_number")},
 			},
 		),
 		migrations.CreateModel(
-			name='Draft',
+			name="Draft",
 			fields=[
 				(
-					'id',
+					"id",
 					models.BigAutoField(
 						auto_created=True,
 						primary_key=True,
 						serialize=False,
-						verbose_name='ID',
+						verbose_name="ID",
 					),
 				),
-				('year', models.PositiveIntegerField(unique=True)),
-				('is_completed', models.BooleanField(default=False)),
-				('created_at', models.DateTimeField(auto_now_add=True)),
-				('updated_at', models.DateTimeField(auto_now=True)),
+				("year", models.PositiveIntegerField(unique=True)),
+				("is_completed", models.BooleanField(default=False)),
+				("created_at", models.DateTimeField(auto_now_add=True)),
+				("updated_at", models.DateTimeField(auto_now=True)),
 				(
-					'draftable_players',
-					models.ManyToManyField(
-						blank=True, related_name='drafts', to='core.player'
-					),
+					"draftable_players",
+					models.ManyToManyField(blank=True, related_name="drafts", to="core.player"),
 				),
 				(
-					'draft_order',
-					models.ManyToManyField(
-						blank=True, related_name='drafts', to='draft.pick'
-					),
+					"draft_order",
+					models.ManyToManyField(blank=True, related_name="drafts", to="draft.pick"),
 				),
 			],
 			options={
-				'ordering': ['-year'],
+				"ordering": ["-year"],
 			},
 		),
 	]
