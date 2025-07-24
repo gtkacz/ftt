@@ -17,7 +17,7 @@ def parse_positions(pos_str: str) -> tuple[str, str | None]:
 
 
 def main(csv_path):
-	df = pd.read_csv(csv_path, usecols=["Player", "Position", "FP/G"])
+	df = pd.read_csv(csv_path, usecols=["Player", "Position", "FP/G", "FPts"])
 
 	with transaction.atomic():
 		for _, row in df.iterrows():
@@ -49,6 +49,7 @@ def main(csv_path):
 				meta = {}
 
 			meta["fpts"] = float(row["FP/G"])
+			meta["total_fpts"] = float(row["FPts"])
 			player.metadata = json.dumps(meta)
 
 			player.save()

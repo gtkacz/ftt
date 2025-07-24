@@ -402,16 +402,25 @@ class DraftPick(models.Model):
 	def make_pick(self, player: Player | None, *, is_auto_pick: bool = False) -> Player:
 		"""Make a pick for the draft position"""
 		if self.time_left_to_pick() <= 0:
-			self.is_auto_pick = True
+			is_auto_pick = True
 
-			players = self.draft.current_player_pool().filter(real_team__isnull=False).values("id", "metadata")
-			players = [{**loads(player["metadata"]), "id": player["id"]} for player in players]
+			player = None
 
-			_player = max(
-				players,
-				key=lambda p: p.get("PTS", 0) + p.get("REB", 0) + p.get("AST", 0),
-			)
-			player = Player.objects.get(id=_player["id"])
+			if DraftQueue.objects.filter(team=self.pick.current_team, draft=self.draft).exists():
+				queue = DraftQueue.objects.get(team=self.pick.current_team, draft=self.draft)
+
+				if queue.autopick_enabled and queue.queue_items:
+					player = queue.get_next_player()
+
+			if not player:
+				players = self.draft.current_player_pool().filter(real_team__isnull=False).values("id", "metadata")
+				players = [{**loads(player["metadata"]), "id": player["id"]} for player in players]
+
+				_player = max(
+					players,
+					key=lambda p: p.get("total_fpts", 0) or p.get("fpts", 0),
+				)
+				player = Player.objects.get(id=_player["id"])
 
 			print(f"Auto-picking player {player.nba_id} for pick {self.overall_pick}")
 
