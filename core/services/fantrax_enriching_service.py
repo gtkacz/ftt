@@ -27,7 +27,7 @@ def main(csv_path):
 			# Find matching player
 			player = None
 			for p in Player.objects.all():
-				full_name = f"{p.first_name} {p.last_name}".removesuffix(" Jr").removesuffix(" Jr.")
+				full_name = f"{p.first_name} {p.last_name}".removesuffix(" Jr").removesuffix(" Jr.").replace("Cam", "Cameron")
 				if unidecode.unidecode(full_name) == norm_csv_name:
 					player = p
 					break
