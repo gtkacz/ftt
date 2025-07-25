@@ -486,6 +486,18 @@ class DraftPick(models.Model):
 							)
 							break
 
+			else:
+				self.draft.is_completed = True
+				self.draft.save()
+				Notification.objects.bulk_create(
+					Notification(
+						user=team.owner,
+						message=f"The {self.draft.year} {'league' if self.draft.is_league_draft else ''} draft has been completed!",
+						level="success",
+					)
+					for team in self.draft.teams.all()
+				)
+
 		return self.selected_player
 
 	def undo_pick(self):
