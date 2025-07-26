@@ -1,22 +1,26 @@
 import logging
 import threading
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.core.management import call_command
 from django.utils import timezone
+
+if TYPE_CHECKING:
+	from draft.models.draft_pick import DraftPick
 
 logger = logging.getLogger(__name__)
 
 
 class AutoDraftScheduler:
-	def __init__(self):
+	def __init__(self) -> None:
+		"""Initialize the auto draft scheduler."""
 		self.running = False
 		self.timer = None
 		self.lock = threading.Lock()
 
 	def start(self):
-		"""Start the smart auto draft scheduler"""
+		"""Start the smart auto draft scheduler."""
 		with self.lock:
 			if self.running:
 				return
@@ -24,13 +28,15 @@ class AutoDraftScheduler:
 			self.running = True
 			logger.debug("Smart auto draft scheduler started")
 
-			# Delay initial database access to avoid AppConfig.ready() warning
-			self.timer = threading.Timer(1.0, self._process_and_schedule)
+			self.timer = threading.Timer(
+				1.0,
+				self._process_and_schedule,
+			)  # Delay initial database access to avoid AppConfig.ready() warning
 			self.timer.daemon = True
 			self.timer.start()
 
 	def stop(self):
-		"""Stop the auto draft scheduler"""
+		"""Stop the auto draft scheduler."""
 		with self.lock:
 			self.running = False
 			if self.timer:
@@ -38,8 +44,8 @@ class AutoDraftScheduler:
 				self.timer = None
 			logger.debug("Smart auto draft scheduler stopped")
 
-	def _process_and_schedule(self):
-		"""Process current picks and schedule next wake time"""
+	def _process_and_schedule(self) -> None:
+		"""Process current picks and schedule next wake time."""
 		if not self.running:
 			return
 
@@ -67,8 +73,8 @@ class AutoDraftScheduler:
 				self.timer.daemon = True
 				self.timer.start()
 
-		except Exception as e:
-			logger.error(f"Error in smart auto draft scheduler: {e!s}")
+		except Exception:
+			logger.exception("Error in smart auto draft scheduler:")
 			# On error, retry in 1 minute
 			if self.running:
 				self.timer = threading.Timer(60, self._process_and_schedule)
@@ -76,9 +82,9 @@ class AutoDraftScheduler:
 				self.timer.start()
 
 	def _calculate_next_wake_time(self) -> Optional[datetime]:
-		"""Calculate when the next pick should expire across all active drafts"""
+		"""Calculate when the next pick should expire across all active drafts."""  # noqa: DOC201
 		try:
-			from draft.models import Draft, DraftPick
+			from draft.models import Draft, DraftPick  # noqa: PLC0415
 
 			# Get all active drafts
 			active_drafts = Draft.objects.filter(is_completed=False, starts_at__lte=timezone.now())
@@ -98,14 +104,16 @@ class AutoDraftScheduler:
 				if pick_expiry and (not earliest_expiry or pick_expiry < earliest_expiry):
 					earliest_expiry = pick_expiry
 
-			return earliest_expiry
-
-		except Exception as e:
-			logger.error(f"Error calculating next wake time: {e!s}")
+		except Exception:
+			logger.exception("Error calculating next wake time:")
 			return None
 
-	def _calculate_pick_expiry_time(self, draft_pick) -> Optional[datetime]:
-		"""Calculate the exact time when a draft pick will expire"""
+		else:
+			return earliest_expiry
+
+	@staticmethod
+	def _calculate_pick_expiry_time(draft_pick: "DraftPick") -> Optional[datetime]:
+		"""Calculate the exact time when a draft pick will expire."""  # noqa: DOC201
 		try:
 			if not draft_pick.started_at:
 				return None
@@ -159,11 +167,12 @@ class AutoDraftScheduler:
 						datetime.combine(next_day, datetime.min.time().replace(hour=lower_bound)),
 					)
 
-			return current_time
-
-		except Exception as e:
-			logger.error(f"Error calculating pick expiry time: {e!s}")
+		except Exception:
+			logger.exception("Error calculating pick expiry time:")
 			return None
+
+		else:
+			return current_time
 
 
 # Global scheduler instance
@@ -171,10 +180,10 @@ scheduler = AutoDraftScheduler()
 
 
 def start_auto_draft_scheduler():
-	"""Start the global scheduler"""
+	"""Start the global scheduler."""
 	scheduler.start()
 
 
 def stop_auto_draft_scheduler():
-	"""Stop the global scheduler"""
+	"""Stop the global scheduler."""
 	scheduler.stop()

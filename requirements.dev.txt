@@ -7,7 +7,6 @@ asgiref==3.9.0
     #   django-cors-headers
 attrs==25.3.0
     # via
-    #   -r requirements.txt
     #   jsonschema
     #   referencing
 certifi==2025.7.14
@@ -21,7 +20,7 @@ charset-normalizer==3.4.2
     #   -r requirements.txt
     #   requests
 crispy-bootstrap4==2025.6
-    # via -r requirements.txt
+    # via -r requirements.dev.in
 distlib==0.3.9
     # via virtualenv
 django==5.2.4
@@ -40,14 +39,16 @@ django-cors-headers==4.7.0
     # via -r requirements.txt
 django-crispy-forms==2.4
     # via
-    #   -r requirements.txt
+    #   -r requirements.dev.in
     #   crispy-bootstrap4
+django-dbml==0.10.1
+    # via -r requirements.dev.in
 django-extensions==4.1
-    # via -r requirements.txt
+    # via -r requirements.dev.in
 django-filter==25.1
     # via -r requirements.txt
 django-model2puml==0.6.1
-    # via -r requirements.txt
+    # via -r requirements.dev.in
 django-sslserver==0.22
     # via -r requirements.txt
 djangorestframework==3.16.0
@@ -58,7 +59,7 @@ djangorestframework==3.16.0
 djangorestframework-simplejwt==5.5.0
     # via -r requirements.txt
 drf-spectacular==0.28.0
-    # via -r requirements.txt
+    # via -r requirements.dev.in
 filelock==3.18.0
     # via virtualenv
 identify==2.6.12
@@ -68,25 +69,17 @@ idna==3.10
     #   -r requirements.txt
     #   requests
 inflection==0.5.1
-    # via
-    #   -r requirements.txt
-    #   drf-spectacular
+    # via drf-spectacular
 jsonschema==4.24.0
-    # via
-    #   -r requirements.txt
-    #   drf-spectacular
+    # via drf-spectacular
 jsonschema-specifications==2025.4.1
-    # via
-    #   -r requirements.txt
-    #   jsonschema
+    # via jsonschema
 nodeenv==1.9.1
     # via pre-commit
 numpy==2.3.1
-    # via
-    #   -r requirements.txt
-    #   pandas
+    # via pandas
 pandas==2.3.1
-    # via -r requirements.txt
+    # via -r requirements.dev.in
 pillow==11.3.0
     # via -r requirements.txt
 platformdirs==4.3.8
@@ -100,52 +93,39 @@ pyjwt==2.9.0
 python-box==7.3.2
     # via -r requirements.txt
 python-dateutil==2.9.0.post0
-    # via
-    #   -r requirements.txt
-    #   pandas
+    # via pandas
 python-dotenv==1.1.1
     # via -r requirements.txt
 pytz==2025.2
-    # via
-    #   -r requirements.txt
-    #   pandas
+    # via pandas
 pyyaml==6.0.2
     # via
-    #   -r requirements.txt
     #   drf-spectacular
     #   pre-commit
 referencing==0.36.2
     # via
-    #   -r requirements.txt
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.4
     # via -r requirements.txt
 rpds-py==0.26.0
     # via
-    #   -r requirements.txt
     #   jsonschema
     #   referencing
 ruff==0.12.2
     # via -r requirements.dev.in
 six==1.17.0
-    # via
-    #   -r requirements.txt
-    #   python-dateutil
+    # via python-dateutil
 sqlparse==0.5.3
     # via
     #   -r requirements.txt
     #   django
 tzdata==2025.2
-    # via
-    #   -r requirements.txt
-    #   pandas
+    # via pandas
 unidecode==1.4.0
     # via -r requirements.txt
 uritemplate==4.2.0
-    # via
-    #   -r requirements.txt
-    #   drf-spectacular
+    # via drf-spectacular
 urllib3==2.5.0
     # via
     #   -r requirements.txt

@@ -52,17 +52,16 @@ INSTALLED_APPS = [
 	"rest_framework_simplejwt",
 	"rest_framework_simplejwt.token_blacklist",
 	"corsheaders",
-	"puml_generator",
 	"drf_spectacular",
-	"django_extensions",
 	"sslserver",
 	"django_filters",
-	"crispy_forms",
-	"crispy_bootstrap4",
 	"core",
 	"draft",
 	"auction",
 ]
+
+if DEBUG:
+	INSTALLED_APPS.extend(("puml_generator", "django_dbml", "django_extensions", "crispy_forms", "crispy_bootstrap4"))
 
 MIDDLEWARE = [
 	"corsheaders.middleware.CorsMiddleware",
@@ -143,7 +142,7 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = path.join(BASE_DIR, "media")
+MEDIA_ROOT = path.join(BASE_DIR, "media")  # noqa: PTH118
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

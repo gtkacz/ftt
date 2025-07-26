@@ -1,3 +1,10 @@
 -r requirements.txt
 ruff
 pre-commit
+django-dbml
+django-model2puml
+django-crispy-forms
+crispy-bootstrap4
+drf-spectacular
+django-extensions
+pandas

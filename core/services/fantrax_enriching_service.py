@@ -15,8 +15,18 @@ def parse_positions(pos_str: str) -> tuple[str, str | None]:
 
 	return primary, secondary
 
+
 def treat_name(name: str) -> str:
-	return name.removesuffix(" Jr").removesuffix(" Jr.").replace("Cam", "Cameron").removesuffix(" II").removesuffix(" III").removesuffix(" IV").replace("'", '')
+	return (
+		name.removesuffix(" Jr")
+		.removesuffix(" Jr.")
+		.replace("Cam", "Cameron")
+		.removesuffix(" II")
+		.removesuffix(" III")
+		.removesuffix(" IV")
+		.replace("'", "")
+	)
+
 
 def main(csv_path):
 	df = pd.read_csv(csv_path, usecols=["Player", "Position", "FP/G", "FPts"])
@@ -60,4 +70,4 @@ def main(csv_path):
 			# print(f"Updated {csv_name}: primary={primary}, secondary={secondary}, fpts={row['FP/G']}")
 
 	for plr in Player.objects.filter(contract__isnull=False).exclude(id__in=found_ids):
-		print(f'Signed player not found: {plr}')
+		print(f"Signed player not found: {plr}")

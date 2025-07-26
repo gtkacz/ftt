@@ -4,14 +4,8 @@ django-cors-headers
 djangorestframework-simplejwt
 Pillow
 python-dotenv
-drf-spectacular
-django-extensions
 python-box
-pandas
 requests
-django-model2puml
 django-filter
-django-crispy-forms
-crispy-bootstrap4
 django-sslserver
 Unidecode

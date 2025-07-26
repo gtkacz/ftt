@@ -11,34 +11,35 @@ def get_default_args(func: Callable) -> dict[str, Any]:
 	This function returns a dictionary with the default arguments of a function.
 
 	Args:
-	    func (Callable): The function to get the default arguments from.
+		func (Callable): The function to get the default arguments from.
 
 	Returns:
-	    Dict[str, Any]: The default arguments of the function.
+		Dict[str, Any]: The default arguments of the function.
 
 	Example:
-	    >>> def foo(a, b=1, c=2):
-	    ...     pass
-	    >>> get_default_args(foo)
-	    {'b': 1, 'c': 2}
+		>>> def foo(a, b=1, c=2):
+		...     pass
+		>>> get_default_args(foo)
+		{'b': 1, 'c': 2}
 	"""
 	signature = inspect.signature(func)
 	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
-def django_obj_to_dict(object: type[Model], *, exclude_fields: list[str] = list()) -> dict[str, Any]:
+def django_obj_to_dict(obj: type[Model], *, exclude_fields: list[str] = list()) -> dict[str, Any]:  # noqa: B006, C408
 	"""
 	This function converts a Django model object to a dictionary.
 
 	Args:
-	    object (Type[Model]): The Django model object to convert.
+		obj: The Django model object to convert.
+		exclude_fields: A list of field names to exclude from the dictionary.
 
 	Returns:
-	    Dict[str, Any]: The dictionary representation of the Django model object.
+		Dict[str, Any]: The dictionary representation of the Django model object.
 	"""
 	return model_to_dict(
-		object,
-		fields=[field.name for field in object._meta.fields if field.name not in exclude_fields],
+		obj,
+		fields=[field.name for field in obj._meta.fields if field.name not in exclude_fields],  # noqa: SLF001
 	)
 
 
@@ -47,10 +48,10 @@ def get_number_suffix(number: float) -> str:
 	Get the ordinal suffix for a given number.
 
 	Args:
-	    number: The number to get the suffix for.
+		number: The number to get the suffix for.
 
 	Returns:
-	    str: The ordinal suffix ('st', 'nd', 'rd', 'th') for the number.
+		str: The ordinal suffix ('st', 'nd', 'rd', 'th') for the number.
 	"""
 	if 10 <= number % 100 <= 20:
 		return "th"
