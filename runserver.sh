@@ -24,16 +24,16 @@ log_message() {
     local level="${2:-info}"
     local color="${LOG_COLORS[$level]}"
     local reset="\033[0m"
-    
+
     local formatted_message="[$(date)] [$level] $message"
-    
+
     # Print to terminal with color
     if [[ -n "$color" ]]; then
         echo -e "${color}${formatted_message}${reset}"
     else
         echo "$formatted_message"
     fi
-    
+
     # Log to file without color codes
     echo "$formatted_message" >> "$LOG_FILE"
 }
@@ -45,13 +45,13 @@ RESTART_COUNT=0
 # Function to start the lt command
 start_lt() {
     log_message "Starting localtunnel on port $PORT with subdomain $SUBDOMAIN" "info"
-    
+
     # Start lt command in background
     lt --port "$PORT" --subdomain "$SUBDOMAIN" &
     LT_PID=$!
-    
+
     log_message "Started localtunnel with PID: $LT_PID" "info"
-    
+
     # Give it a moment to initialize
     sleep 2
 }
@@ -62,7 +62,7 @@ is_process_running() {
     if [[ -z "$pid" ]]; then
         return 1
     fi
-    
+
     if kill -0 "$pid" 2>/dev/null; then
         return 0
     else
@@ -76,7 +76,7 @@ kill_lt() {
         log_message "Killing localtunnel process $LT_PID" "warning"
         kill "$LT_PID" 2>/dev/null
         sleep 1
-        
+
         # Force kill if still running
         if is_process_running "$LT_PID"; then
             kill -9 "$LT_PID" 2>/dev/null
@@ -90,14 +90,14 @@ kill_lt() {
 handle_restart() {
     RESTART_COUNT=$((RESTART_COUNT + 1))
     log_message "Restart attempt #$RESTART_COUNT" "warning"
-    
+
     if [[ $RESTART_COUNT -ge $MAX_RESTART_ATTEMPTS ]]; then
         log_message "Maximum restart attempts ($MAX_RESTART_ATTEMPTS) reached, switching to backup subdomain" "critical"
         SUBDOMAIN="${ORIGINAL_SUBDOMAIN}-backup"
         RESTART_COUNT=0
         log_message "Switched to backup subdomain: $SUBDOMAIN, restart count reset" "info"
     fi
-    
+
     kill_lt
     start_lt
 }
@@ -105,16 +105,16 @@ handle_restart() {
 # Function to perform health check
 health_check() {
     local url="https://${SUBDOMAIN}.loca.lt/api/healthcheck/"
-    
+
     log_message "Performing health check: $url" "debug"
-    
+
     local response_code
     response_code=$(curl -s -o /dev/null -w "%{http_code}" \
         --connect-timeout "$CURL_TIMEOUT" \
         --max-time "$CURL_TIMEOUT" \
         -H "bypass-tunnel-reminder: true" \
         "$url" 2>/dev/null)
-    
+
     if [[ "$response_code" == "200" ]]; then
         log_message "Health check passed (HTTP $response_code)" "debug"
         # Reset restart count on successful health check
@@ -143,16 +143,16 @@ trap cleanup SIGINT SIGTERM
 main() {
     log_message "Starting LocalTunnel monitor script" "info"
     log_message "Configuration: PORT=$PORT, SUBDOMAIN=$SUBDOMAIN, MAX_RESTART_ATTEMPTS=$MAX_RESTART_ATTEMPTS" "info"
-    
+
     while true; do
         # Start lt if not running
         if ! is_process_running "$LT_PID"; then
             if [[ -n "$LT_PID" ]]; then
                 log_message "LocalTunnel process $LT_PID has died" "error"
             fi
-            
+
             handle_restart
-            
+
             # Wait a bit for the tunnel to establish
             sleep 5
         else
@@ -163,7 +163,7 @@ main() {
                 continue
             fi
         fi
-        
+
         # Wait before next health check
         sleep "$HEALTH_CHECK_INTERVAL"
     done
