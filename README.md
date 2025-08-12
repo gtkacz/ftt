@@ -83,7 +83,7 @@ curl -X POST http://127.0.0.1:8000/api/auth/register/ \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
-    "email": "test@example.com", 
+    "email": "test@example.com",
     "first_name": "Test",
     "last_name": "User",
     "password": "testpass123",
@@ -160,7 +160,7 @@ To add more detailed descriptions or examples, you can:
 def get(self, request, *args, **kwargs):
     """
     Retrieve a list of all teams with their statistics.
-    
+
     This endpoint returns paginated results including team salary totals
     and player counts.
     """
@@ -182,7 +182,7 @@ def get(self, request, *args, **kwargs):
 ```python
 class Player(models.Model):
     name = models.CharField(
-        max_length=100, 
+        max_length=100,
         help_text="Player's full name"
     )
 ```
