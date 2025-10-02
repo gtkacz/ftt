@@ -3,7 +3,7 @@ from rest_framework import serializers
 from draft.serializers.pick import PickSerializer
 from ftt.common.util import django_obj_to_dict
 
-from .models import Contract, NBATeam, Notification, Player, Team, User
+from .models import Contract, NBATeam, Notification, Player, Team, Trade, TradeAsset, TradeOffer, User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -300,3 +300,36 @@ class NotificationSerializer(serializers.ModelSerializer):
 			"user": {"required": False, "allow_null": True},
 			"read": {"default": False},
 		}
+
+
+class TradeAssetSerializer(serializers.ModelSerializer):
+	player_detail = SimplePlayerSerializer(source="player", read_only=True)
+	pick_detail = PickSerializer(source="pick", read_only=True)
+	giving_team_detail = TeamSerializer(source="giving_team", read_only=True)
+	receiving_team_detail = TeamSerializer(source="receiving_team", read_only=True)
+
+	class Meta:
+		model = TradeAsset
+		fields = "__all__"
+		read_only_fields = ["id", "created_at"]
+
+
+class TradeOfferSerializer(serializers.ModelSerializer):
+	team_detail = TeamSerializer(source="team", read_only=True)
+
+	class Meta:
+		model = TradeOffer
+		fields = "__all__"
+		read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class TradeSerializer(serializers.ModelSerializer):
+	proposing_team_detail = TeamSerializer(source="proposing_team", read_only=True)
+	teams_detail = TeamSerializer(source="teams", many=True, read_only=True)
+	assets = TradeAssetSerializer(many=True, read_only=True)
+	offers = TradeOfferSerializer(many=True, read_only=True)
+
+	class Meta:
+		model = Trade
+		fields = "__all__"
+		read_only_fields = ["id", "created_at", "updated_at", "proposed_at", "completed_at", "approved_at"]
