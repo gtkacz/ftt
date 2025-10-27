@@ -1,3 +1,4 @@
+import pathlib
 from datetime import date
 from json import dumps
 
@@ -97,7 +98,7 @@ def run():
 
 		from json import loads
 
-		with open("core/services/backup.json") as file:
+		with pathlib.Path("core/services/backup.json").open() as file:
 			response_dict = loads(file.read())
 
 		players_df, teams_df = parse_response_to_dataframe(response_dict)
