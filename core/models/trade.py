@@ -133,7 +133,7 @@ class Trade(models.Model):
 			raise ValidationError(
 				f"{team.name} would exceed salary cap. "
 				f"Current: {team.total_salary()}, Net change: {net_salary}, "
-				f"Cap: {LEAGUE_SETTINGS.SALARY_CAP}"
+				f"Cap: {LEAGUE_SETTINGS.SALARY_CAP}",
 			)
 
 		# Check player cap
@@ -141,10 +141,10 @@ class Trade(models.Model):
 			raise ValidationError(
 				f"{team.name} would exceed player cap. "
 				f"Current: {team.total_players()}, Net change: {net_players}, "
-				f"Cap: {LEAGUE_SETTINGS.MAX_PLAYER_CAP}"
+				f"Cap: {LEAGUE_SETTINGS.MAX_PLAYER_CAP}",
 			)
 
-	def _validate_player_tradeable(self, asset: "TradeAsset") -> None:  # noqa: F821
+	def _validate_player_tradeable(self, asset: "TradeAsset") -> None:
 		"""Validate that a player can be traded."""
 		if not asset.player:
 			return
@@ -175,7 +175,7 @@ class Trade(models.Model):
 		if years_remaining <= 0 and not contract.is_rfa:
 			raise ValidationError(
 				f"{player} has {years_remaining} years remaining and is not an RFA. "
-				"Only RFA players with 0 years can be traded."
+				"Only RFA players with 0 years can be traded.",
 			)
 
 	@transaction.atomic
@@ -245,7 +245,7 @@ class Trade(models.Model):
 			},
 			"receiving": {
 				"players": list(
-					self.assets.filter(receiving_team=team, asset_type="player").select_related("player")
+					self.assets.filter(receiving_team=team, asset_type="player").select_related("player"),
 				),
 				"picks": list(self.assets.filter(receiving_team=team, asset_type="pick").select_related("pick")),
 			},
@@ -484,7 +484,7 @@ class TradeAsset(models.Model):
 	def __str__(self) -> str:
 		if self.asset_type == "player" and self.player:
 			return f"{self.player} from {self.giving_team} to {self.receiving_team}"
-		elif self.asset_type == "pick" and self.pick:
+		if self.asset_type == "pick" and self.pick:
 			protection = self._get_protection_display()
 			return f"{self.pick} from {self.giving_team} to {self.receiving_team}{protection}"
 		return f"Unknown asset from {self.giving_team} to {self.receiving_team}"
@@ -526,7 +526,7 @@ class TradeAsset(models.Model):
 			if self.pick_protection_type in ["swap_best", "swap_worst"]:
 				if not self.pick_swap_target:
 					raise ValidationError(
-						f"pick_swap_target required for protection type '{self.pick_protection_type}'"
+						f"pick_swap_target required for protection type '{self.pick_protection_type}'",
 					)
 
 				if self.pick_swap_target == self.pick:
@@ -535,7 +535,7 @@ class TradeAsset(models.Model):
 			if self.pick_protection_type == "doesnt_convey":
 				if not self.pick_protection_range_start or not self.pick_protection_range_end:
 					raise ValidationError(
-						"pick_protection_range_start and pick_protection_range_end required for doesnt_convey"
+						"pick_protection_range_start and pick_protection_range_end required for doesnt_convey",
 					)
 
 				if self.pick_protection_range_start > self.pick_protection_range_end:

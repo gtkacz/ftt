@@ -281,13 +281,13 @@ def validate_trade_view(request):
 		if not under_salary_cap:
 			errors.append(
 				f"{team.name} would exceed salary cap. Current: {team.total_salary()}, "
-				f"New: {new_salary}, Cap: {LEAGUE_SETTINGS.SALARY_CAP}"
+				f"New: {new_salary}, Cap: {LEAGUE_SETTINGS.SALARY_CAP}",
 			)
 
 		if not under_player_cap:
 			errors.append(
 				f"{team.name} would exceed player cap. Current: {team.total_players()}, "
-				f"New: {new_player_count}, Cap: {LEAGUE_SETTINGS.MAX_PLAYER_CAP}"
+				f"New: {new_player_count}, Cap: {LEAGUE_SETTINGS.MAX_PLAYER_CAP}",
 			)
 
 		team_impacts[team.id] = {
@@ -309,7 +309,7 @@ def validate_trade_view(request):
 			"errors": errors,
 			"warnings": warnings,
 			"team_impacts": team_impacts,
-		}
+		},
 	)
 
 

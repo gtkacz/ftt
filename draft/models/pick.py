@@ -107,7 +107,7 @@ class Pick(models.Model):
 		if self.protection_type in ["swap_best", "swap_worst"]:
 			if not self.swap_target_pick:
 				raise ValidationError(
-					f"swap_target_pick is required for protection type '{self.protection_type}'"
+					f"swap_target_pick is required for protection type '{self.protection_type}'",
 				)
 
 			if self.swap_target_pick == self:
@@ -123,7 +123,7 @@ class Pick(models.Model):
 		if self.protection_type == "doesnt_convey":
 			if not self.protection_range_start or not self.protection_range_end:
 				raise ValidationError(
-					"protection_range_start and protection_range_end are required for 'doesnt_convey' protection"
+					"protection_range_start and protection_range_end are required for 'doesnt_convey' protection",
 				)
 
 			if self.protection_range_start > self.protection_range_end:
@@ -135,7 +135,7 @@ class Pick(models.Model):
 			if self.rollover_year <= self.draft_year:
 				raise ValidationError("rollover_year must be after draft_year")
 
-	def evaluate_protection(self, actual_pick_number: int) -> dict[str, any]:  # noqa: C901
+	def evaluate_protection(self, actual_pick_number: int) -> dict[str, any]:
 		"""
 		Evaluate if protection is triggered and determine the outcome.
 
