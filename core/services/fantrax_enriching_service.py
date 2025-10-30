@@ -34,6 +34,8 @@ def main(csv_path):
 
 	with transaction.atomic():
 		for _, row in df.iterrows():
+			if row["FPts"] == 0:
+				continue
 			csv_name = row["Player"]
 			norm_csv_name = treat_name(csv_name)
 
@@ -58,7 +60,7 @@ def main(csv_path):
 			# Update metadata
 			meta_str = player.metadata or "{}"
 			try:
-				meta = json.loads(meta_str)
+				meta = json.loads(meta_str) if isinstance(meta_str, str) else player.metadata
 			except json.JSONDecodeError:
 				meta = {}
 
@@ -67,7 +69,7 @@ def main(csv_path):
 			player.metadata = json.dumps(meta)
 
 			player.save()
-			# print(f"Updated {csv_name}: primary={primary}, secondary={secondary}, fpts={row['FP/G']}")
+			print(f"Updated {csv_name}: primary={primary}, secondary={secondary}, fpts={row['FP/G']}")
 
 	for plr in Player.objects.filter(contract__isnull=False).exclude(id__in=found_ids):
 		print(f"Signed player not found: {plr}")
