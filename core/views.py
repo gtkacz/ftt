@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -14,7 +15,9 @@ from .serializers import (
 	PlayerSerializer,
 	SimplePlayerSerializer,
 	TeamSerializer,
+	TradeApprovalSerializer,
 	TradeAssetSerializer,
+	TradeHistorySerializer,
 	TradeOfferSerializer,
 	TradeSerializer,
 	UserRegistrationSerializer,
@@ -210,31 +213,281 @@ def cancel_trade_view(request, pk):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
 def approve_trade_view(request, pk):
+	"""Approve a trade.
+
+	DEPRECATED: Use commissioner_vote_view instead.
+	Kept for backward compatibility.
+
+	Allows commissioners to approve trades using the new voting system.
+	Admins (is_superuser) can instantly approve.
+	Staff (is_staff) votes count toward majority.
+
+	Args:
+		request: HTTP request with optional 'notes' field.
+		pk: Trade primary key.
+
+	Returns:
+		Response with trade data and vote result.
+
+	Raises:
+		HTTP_403_FORBIDDEN: If user is not a commissioner.
+		HTTP_404_NOT_FOUND: If trade doesn't exist.
+		HTTP_400_BAD_REQUEST: If validation fails.
+	"""
 	try:
 		trade = Trade.objects.get(pk=pk)
-		trade.status = "approved"
-		trade.approved_at = timezone.now()
-		trade.approved_by = request.user
-		trade.notes = request.data.get("notes", trade.notes)
-		trade.save()
+
+		# Check permissions
+		if not request.user.is_staff and not request.user.is_superuser:
+			return Response(
+				{"error": "Only commissioners can approve trades"},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		notes = request.data.get("notes", "")
+
+		# Use new voting system
+		result = trade.record_commissioner_vote(
+			commissioner=request.user,
+			vote="approve",
+			notes=notes,
+		)
+
 		serializer = TradeSerializer(trade)
-		return Response(serializer.data)
+		return Response({"trade": serializer.data, "vote_result": result})
+
 	except Trade.DoesNotExist:
-		return Response({"error": "Trade not found"}, status=status.HTTP_404_NOT_FOUND)
+		return Response(
+			{"error": "Trade not found"},
+			status=status.HTTP_404_NOT_FOUND,
+		)
+	except ValidationError as e:
+		return Response(
+			{"error": str(e)},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
 
 
 @api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
 def veto_trade_view(request, pk):
+	"""Veto a trade.
+
+	DEPRECATED: Use commissioner_vote_view instead.
+	Kept for backward compatibility.
+
+	Allows commissioners to veto trades using the new voting system.
+	Admins (is_superuser) can instantly veto.
+	Staff (is_staff) votes count toward majority.
+
+	Args:
+		request: HTTP request with optional 'reason' field.
+		pk: Trade primary key.
+
+	Returns:
+		Response with trade data and vote result.
+
+	Raises:
+		HTTP_403_FORBIDDEN: If user is not a commissioner.
+		HTTP_404_NOT_FOUND: If trade doesn't exist.
+		HTTP_400_BAD_REQUEST: If validation fails.
+	"""
 	try:
 		trade = Trade.objects.get(pk=pk)
-		trade.status = "vetoed"
-		trade.notes = request.data.get("reason", trade.notes)
-		trade.save()
+
+		# Check permissions
+		if not request.user.is_staff and not request.user.is_superuser:
+			return Response(
+				{"error": "Only commissioners can veto trades"},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		reason = request.data.get("reason", "")
+
+		# Use new voting system
+		result = trade.record_commissioner_vote(
+			commissioner=request.user,
+			vote="veto",
+			notes=reason,
+		)
+
 		serializer = TradeSerializer(trade)
-		return Response(serializer.data)
+		return Response({"trade": serializer.data, "vote_result": result})
+
 	except Trade.DoesNotExist:
-		return Response({"error": "Trade not found"}, status=status.HTTP_404_NOT_FOUND)
+		return Response(
+			{"error": "Trade not found"},
+			status=status.HTTP_404_NOT_FOUND,
+		)
+	except ValidationError as e:
+		return Response(
+			{"error": str(e)},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def commissioner_vote_view(request, pk):
+	"""Allow commissioners to vote on a trade.
+
+	The primary endpoint for commissioner approval workflow.
+	Replaces separate approve_trade_view and veto_trade_view.
+
+	Admins (is_superuser) can instantly approve/veto with a single vote.
+	Staff (is_staff) votes count toward majority rule decision.
+
+	Args:
+		request: HTTP request with required 'vote' field ("approve" or "veto")
+			and optional 'notes' field.
+		pk: Trade primary key.
+
+	Returns:
+		Response with trade data and vote result containing:
+			- decision_made (bool): Whether a final decision was reached.
+			- final_status (str): Trade status if decision made.
+			- votes_needed (int): Remaining votes needed for decision.
+			- approve_count (int): Current approval votes.
+			- veto_count (int): Current veto votes.
+			- total_commissioners (int): Total number of commissioners.
+
+	Raises:
+		HTTP_403_FORBIDDEN: If user is not a commissioner.
+		HTTP_404_NOT_FOUND: If trade doesn't exist.
+		HTTP_400_BAD_REQUEST: If validation fails or vote is invalid.
+
+	Examples:
+		>>> # Admin instant approval
+		>>> POST /api/trades/1/vote/
+		>>> {"vote": "approve", "notes": "Trade looks fair"}
+		>>> # Returns: {"trade": {...}, "vote_result": {"decision_made": True, "final_status": "approved"}}
+
+		>>> # Regular commissioner vote
+		>>> POST /api/trades/1/vote/
+		>>> {"vote": "approve", "notes": "I support this trade"}
+		>>> # Returns: {"trade": {...}, "vote_result": {"decision_made": False, "votes_needed": 2}}
+	"""
+	try:
+		trade = Trade.objects.get(pk=pk)
+
+		# Check permissions
+		if not request.user.is_staff and not request.user.is_superuser:
+			return Response(
+				{"error": "Only commissioners can vote on trades"},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		vote = request.data.get("vote")  # "approve" or "veto"
+		notes = request.data.get("notes", "")
+
+		if vote not in ["approve", "veto"]:
+			return Response(
+				{"error": "vote must be 'approve' or 'veto'"},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		# Record vote using new voting system
+		result = trade.record_commissioner_vote(
+			commissioner=request.user,
+			vote=vote,
+			notes=notes,
+		)
+
+		serializer = TradeSerializer(trade)
+
+		return Response({
+			"trade": serializer.data,
+			"vote_result": result,
+		})
+
+	except Trade.DoesNotExist:
+		return Response(
+			{"error": "Trade not found"},
+			status=status.HTTP_404_NOT_FOUND,
+		)
+	except ValidationError as e:
+		return Response(
+			{"error": str(e)},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+	except Exception as e:
+		return Response(
+			{"error": str(e)},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def trade_history_view(request, pk):
+	"""Get complete timeline/history for a trade.
+
+	Returns all historical events and commissioner votes for a trade.
+	Access is restricted to teams involved in the trade or commissioners.
+
+	Args:
+		request: HTTP request.
+		pk: Trade primary key.
+
+	Returns:
+		Response with:
+			- trade_id: Trade ID.
+			- status: Current trade status.
+			- history: List of trade history events (ordered chronologically).
+			- approvals: List of commissioner votes (if user has permission).
+
+	Raises:
+		HTTP_403_FORBIDDEN: If user doesn't have permission to view this trade.
+		HTTP_404_NOT_FOUND: If trade doesn't exist.
+
+	Examples:
+		>>> # Team owner viewing their trade
+		>>> GET /api/trades/1/history/
+		>>> # Returns: {"trade_id": 1, "status": "waiting_approval", "history": [...], "approvals": []}
+
+		>>> # Commissioner viewing trade
+		>>> GET /api/trades/1/history/
+		>>> # Returns: {"trade_id": 1, "status": "waiting_approval", "history": [...], "approvals": [...]}
+	"""
+	try:
+		trade = Trade.objects.get(pk=pk)
+
+		# Permission check
+		user = request.user
+		is_involved = trade.teams.filter(owner=user).exists()
+		is_commissioner = user.is_staff or user.is_superuser
+
+		if not is_involved and not is_commissioner:
+			return Response(
+				{"error": "You don't have permission to view this trade history"},
+				status=status.HTTP_403_FORBIDDEN,
+			)
+
+		# Get history (ordered chronologically by created_at)
+		history = trade.history.all()
+		history_serializer = TradeHistorySerializer(history, many=True)
+
+		# Get approvals if commissioner or trade in approval status
+		approvals = []
+		if is_commissioner or trade.status in ["waiting_approval", "approved", "vetoed"]:
+			approvals = trade.approvals.all()
+			approvals_serializer = TradeApprovalSerializer(approvals, many=True)
+			approvals = approvals_serializer.data
+
+		return Response({
+			"trade_id": trade.id,
+			"status": trade.status,
+			"history": history_serializer.data,
+			"approvals": approvals,
+		})
+
+	except Trade.DoesNotExist:
+		return Response(
+			{"error": "Trade not found"},
+			status=status.HTTP_404_NOT_FOUND,
+		)
 
 
 @api_view(["POST"])

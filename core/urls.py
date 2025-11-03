@@ -39,6 +39,8 @@ urlpatterns = [
 	path("trades/<int:pk>/cancel/", views.cancel_trade_view, name="trade-cancel"),
 	path("trades/<int:pk>/approve/", views.approve_trade_view, name="trade-approve"),
 	path("trades/<int:pk>/veto/", views.veto_trade_view, name="trade-veto"),
+	path("trades/<int:pk>/vote/", views.commissioner_vote_view, name="commissioner-vote"),
+	path("trades/<int:pk>/history/", views.trade_history_view, name="trade-history"),
 	path("trades/validate/", views.validate_trade_view, name="trade-validate"),
 	path("trades/<int:trade_pk>/assets/", views.TradeAssetListCreateView.as_view(), name="trade-assets"),
 	# Trade Asset endpoints

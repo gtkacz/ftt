@@ -164,3 +164,4 @@ cython_debug/
 # Custom
 .ruff_cache/
 media/
+claudedocs/
