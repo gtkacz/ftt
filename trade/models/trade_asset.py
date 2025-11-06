@@ -7,22 +7,29 @@ from draft.models import Pick
 
 class TradeAsset(models.Model):
 	"""A tradeable asset (player contract or draft pick) in the league."""
-	owner = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="trade_assets")
+
+	sender = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="trade_assets")
 	receiver = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="received_trade_assets")
 	trade = models.ForeignKey("trade.Trade", on_delete=models.CASCADE, related_name="assets")
 	asset_type = models.CharField(max_length=20, choices=[("player", "Player"), ("pick", "Draft Pick")])
-	player_contract = models.ForeignKey(Contract, null=True, blank=True, on_delete=models.CASCADE)
-	draft_pick = models.ForeignKey(Pick, null=True, blank=True, on_delete=models.CASCADE)
+	player_contract = models.ForeignKey(
+		Contract,
+		null=True,
+		blank=True,
+		on_delete=models.CASCADE,
+		related_name="trade_assets",
+	)
+	draft_pick = models.ForeignKey(Pick, null=True, blank=True, on_delete=models.CASCADE, related_name="trade_assets")
 
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
 	class Meta:  # noqa: D106
 		ordering = ("created_at", "updated_at")
-		indexes = (models.Index(fields=["owner", "receiver"]), models.Index(fields=["trade"]))
+		indexes = (models.Index(fields=["sender", "receiver"]), models.Index(fields=["trade"]))
 
 	def __str__(self) -> str:
-		return f"TradeAsset ({self.asset_type}) from {self.owner.name} to {self.receiver.name}"
+		return f"TradeAsset ({self.asset_type}) from {self.sender.name} to {self.receiver.name}"
 
 	@property
 	def asset(self) -> models.Model:

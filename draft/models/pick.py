@@ -3,6 +3,7 @@ from django.db import models
 
 class Pick(models.Model):
 	"""Draft capital/assets that teams own."""
+
 	PROTECTION_CHOICES = (
 		("unprotected", "UNPROTECTED"),
 		("top_x", "TOP_X"),

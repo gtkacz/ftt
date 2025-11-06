@@ -3,8 +3,6 @@ from typing import Any
 
 from django.db import models
 
-from core.models.notification import Notification
-
 
 class Player(models.Model):
 	"""Model representing a basketball player."""
@@ -40,12 +38,4 @@ class Player(models.Model):
 		return f"{self.first_name} {self.last_name}"
 
 	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride] # noqa: D102
-		if self.id and hasattr(self, "contract"):  # pyright: ignore[reportAttributeAccessIssue]
-			Notification.objects.create(
-				user=self.contract.team.owner,  # pyright: ignore[reportAttributeAccessIssue]
-				message=f"{self} has been updated.",
-				priority=1,
-				level="debug",
-			)
-
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]

@@ -24,7 +24,7 @@ class Contract(models.Model):
 		return f"{self.player} - {self.team} ({self.start_year}-{self.start_year + self.duration - 1})"
 
 	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]  # noqa: D102
-		if hasattr(self, "player") and hasattr(self, "team"):
+		if hasattr(self, "player") and hasattr(self, "team") and not hasattr(self, "trade_assets"):
 			Notification.objects.create(
 				user=self.team.owner,  # pyright: ignore[reportAttributeAccessIssue]
 				message=f"{self.player} has signed a contract with your team starting in {self.start_year}",
