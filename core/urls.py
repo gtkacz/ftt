@@ -31,24 +31,4 @@ urlpatterns = [
 		views.NotificationView.as_view(),
 		name="notification-actions",
 	),
-	# Trade endpoints
-	path("trades/", views.TradeListCreateView.as_view(), name="trade-list-create"),
-	path("trades/<int:pk>/", views.TradeDetailView.as_view(), name="trade-detail"),
-	path("trades/<int:pk>/propose/", views.propose_trade_view, name="trade-propose"),
-	path("trades/<int:pk>/execute/", views.execute_trade_view, name="trade-execute"),
-	path("trades/<int:pk>/cancel/", views.cancel_trade_view, name="trade-cancel"),
-	path("trades/<int:pk>/approve/", views.approve_trade_view, name="trade-approve"),
-	path("trades/<int:pk>/veto/", views.veto_trade_view, name="trade-veto"),
-	path("trades/<int:pk>/vote/", views.commissioner_vote_view, name="commissioner-vote"),
-	path("trades/<int:pk>/history/", views.trade_history_view, name="trade-history"),
-	path("trades/validate/", views.validate_trade_view, name="trade-validate"),
-	path("trades/<int:trade_pk>/assets/", views.TradeAssetListCreateView.as_view(), name="trade-assets"),
-	# Trade Asset endpoints
-	path("trade-assets/<int:pk>/", views.TradeAssetDetailView.as_view(), name="trade-asset-detail"),
-	# Trade Offer endpoints
-	path("trade-offers/", views.TradeOfferListView.as_view(), name="trade-offer-list"),
-	path("trade-offers/<int:pk>/", views.TradeOfferDetailView.as_view(), name="trade-offer-detail"),
-	path("trade-offers/<int:pk>/accept/", views.accept_offer_view, name="trade-offer-accept"),
-	path("trade-offers/<int:pk>/reject/", views.reject_offer_view, name="trade-offer-reject"),
-	path("trade-offers/<int:pk>/counter/", views.counter_offer_view, name="trade-offer-counter"),
 ]

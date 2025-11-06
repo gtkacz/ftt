@@ -57,47 +57,13 @@ class Draft(models.Model):
 
 		return teams_order
 
-	def evaluate_pick_protections(self, pick_positions: dict[int, int]) -> None:
-		"""
-		Evaluate pick protections based on actual draft positions.
-
-		Args:
-			pick_positions: Dict mapping pick_id to actual pick number (1-based)
-				Example: {pick1.id: 3, pick2.id: 15} means pick1 is #3 overall, pick2 is #15
-		"""
-		from draft.models import Pick  # noqa: PLC0415
-
-		# Get all picks for this draft year with protections
-		protected_picks = Pick.objects.filter(
-			draft_year=self.year,
-			protection_type__in=["swap_best", "swap_worst", "doesnt_convey"],
-		)
-
-		# First pass: set actual pick numbers
-		for pick in protected_picks:
-			if pick.id in pick_positions:
-				pick.actual_pick_number = pick_positions[pick.id]
-				pick.save()
-
-		# Second pass: evaluate protections
-		for pick in protected_picks:
-			if pick.id in pick_positions:
-				result = pick.evaluate_protection(pick_positions[pick.id])
-				pick.apply_protection_result(result)
-
 	def start(self) -> list[int]:
 		"""
 		Starts the draft and generates the draft order.
 
-		IMPORTANT: Call evaluate_pick_protections() BEFORE calling this method if:
-		- This is not a league draft (is_league_draft=False)
-		- You have pick protections that need to be evaluated
-		- You have determined actual pick positions (from lottery/standings)
-
 		Example:
 			# Determine pick positions (e.g., from standings or lottery)
 			pick_positions = {pick1.id: 3, pick2.id: 15}  # pick1 is #3, pick2 is #15
-			draft.evaluate_pick_protections(pick_positions)
 			draft.start()
 
 		Raises:
