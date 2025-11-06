@@ -6,7 +6,7 @@ from core.models import Notification, Player
 
 
 class Draft(models.Model):
-	"""Represents a draft event."""
+	"""A draft event."""
 
 	year = models.PositiveIntegerField()
 	draftable_players = models.ManyToManyField("core.Player", related_name="drafts", blank=True)

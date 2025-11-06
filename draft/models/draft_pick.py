@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class DraftPick(models.Model):
-	"""Represents the actual picking order in a draft."""
+	"""The concrete pick in a draft."""
 
 	draft = models.ForeignKey("Draft", on_delete=models.CASCADE, related_name="draft_positions")
 	pick = models.ForeignKey(

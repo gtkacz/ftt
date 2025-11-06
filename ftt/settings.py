@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 	"core",
 	"draft",
 	"auction",
+	"trade",
 ]
 
 if DEBUG:

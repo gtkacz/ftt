@@ -2,23 +2,25 @@ from django.db import models
 
 
 class Pick(models.Model):
-	"""Represents draft capital/assets that teams own."""
+	"""Draft capital/assets that teams own."""
+	PROTECTION_CHOICES = (
+		("unprotected", "UNPROTECTED"),
+		("top_x", "TOP_X"),
+		("swap_best", "SWAP_BEST"),
+		("swap_worst", "SWAP_WORST"),
+	)
 
 	original_team = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="original_picks")
 	current_team = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="current_picks")
 	draft_year = models.PositiveIntegerField()
 	round_number = models.PositiveIntegerField()
 	is_from_league_draft = models.BooleanField(default=False, help_text="Indicates if this pick is from a league draft")
+	protection = models.CharField(max_length=11, choices=PROTECTION_CHOICES, default=PROTECTION_CHOICES[0][0])
 
 	actual_pick_number = models.PositiveIntegerField(
 		null=True,
 		blank=True,
 		help_text="Actual pick number after lottery/standings (1-30 for round 1)",
-	)
-
-	is_conveyed = models.BooleanField(
-		default=True,
-		help_text="Whether this pick conveyed to current_team or was protected",
 	)
 
 	created_at = models.DateTimeField(auto_now_add=True)
