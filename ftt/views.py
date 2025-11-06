@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
+from ftt.settings import LEAGUE_SETTINGS
+
 
 class HealthCheckViewSet(ViewSet):
 	"""HealthCheckViewSet is a viewset that provides a health check endpoint for the API."""
@@ -21,3 +23,19 @@ class HealthCheckViewSet(ViewSet):
 			Response: A response indicating the server is up.
 		"""
 		return Response(data="Server is up.", status=status.HTTP_200_OK)
+
+
+class LeagueSettingsViewSet(ViewSet):
+	"""LeagueSettingsViewSet is a viewset that provides league settings."""
+
+	permission_classes = (AllowAny,)
+
+	@staticmethod
+	def list(*_: Sequence[Any], **__: dict[str, Any]) -> Response:
+		"""
+		Endpoint to retrieve league settings.
+
+		Returns:
+			Response: A response containing the league settings.
+		"""
+		return Response(data=LEAGUE_SETTINGS, status=status.HTTP_200_OK)

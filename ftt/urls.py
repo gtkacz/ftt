@@ -22,7 +22,7 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from ftt.views import HealthCheckViewSet
+from ftt.views import HealthCheckViewSet, LeagueSettingsViewSet
 
 urlpatterns = [
 	path("admin/", admin.site.urls),
@@ -32,6 +32,11 @@ urlpatterns = [
 		"api/healthcheck/",
 		HealthCheckViewSet.as_view({"get": "list"}),
 		name="healthcheck",
+	),
+	path(
+		"api/settings/",
+		LeagueSettingsViewSet.as_view({"get": "list"}),
+		name="settings",
 	),
 	# OpenAPI schema endpoints
 	path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
