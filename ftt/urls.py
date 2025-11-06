@@ -28,6 +28,7 @@ urlpatterns = [
 	path("admin/", admin.site.urls),
 	path("api/", include("core.urls")),
 	path("api/", include("draft.urls")),
+	path("api/", include("trade.urls")),
 	path(
 		"api/healthcheck/",
 		HealthCheckViewSet.as_view({"get": "list"}),

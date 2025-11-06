@@ -5,9 +5,13 @@ asgiref==3.9.0
     #   django
     #   django-cors-headers
 certifi==2025.7.14
-    # via requests
+    # via
+    #   clicksend-client
+    #   requests
 charset-normalizer==3.4.2
     # via requests
+clicksend-client==5.0.78
+    # via -r requirements.in
 django==5.2.4
     # via
     #   -r requirements.in
@@ -36,13 +40,21 @@ pyjwt==2.9.0
     # via djangorestframework-simplejwt
 python-box==7.3.2
     # via -r requirements.in
+python-dateutil==2.9.0.post0
+    # via clicksend-client
 python-dotenv==1.1.1
     # via -r requirements.in
 requests==2.32.4
     # via -r requirements.in
+six==1.17.0
+    # via
+    #   clicksend-client
+    #   python-dateutil
 sqlparse==0.5.3
     # via django
 unidecode==1.4.0
     # via -r requirements.in
 urllib3==2.5.0
-    # via requests
+    # via
+    #   clicksend-client
+    #   requests

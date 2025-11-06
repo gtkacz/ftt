@@ -9,3 +9,4 @@ requests
 django-filter
 django-sslserver
 Unidecode
+clicksend-client
