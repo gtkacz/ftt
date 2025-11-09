@@ -1,12 +1,17 @@
+from collections import defaultdict
+from typing import Optional
+
+from box import Box
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 
-from core.models import Team, User
+from core.models import Notification, Team, User
 from ftt.common.util import django_obj_to_dict
 from ftt.settings import LEAGUE_SETTINGS
 from trade.models.trade_status import TradeStatus
+from trade.types.timeline import TimelineEntry
 
 
 class Trade(models.Model):
@@ -15,6 +20,7 @@ class Trade(models.Model):
 	sender = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="trades_created")
 	participants = models.ManyToManyField("core.Team", related_name="trades")
 	parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="succeeded_by")
+	done = models.BooleanField(default=False)
 
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -30,13 +36,12 @@ class Trade(models.Model):
 		return f"Trade #{self.pk} by {self.sender}"
 
 	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D102
-		if hasattr(self, "pk") and self.pk and self.is_approved and self.is_latest:
-			for asset in self.assets.all():
-				asset.transfer_asset()
+		if hasattr(self, "pk") and self.pk:
+			self.handle_changes()
 
 		super().save(*args, **kwargs)
 
-		self.create_trade_status_if_needed()
+		self.handle_changes()
 
 	def validate_compliance(self) -> None:
 		"""
@@ -70,11 +75,64 @@ class Trade(models.Model):
 				raise ValidationError(f"Participant {participant} would be out of compliance after this trade.")
 
 	@atomic
-	def create_trade_status_if_needed(self) -> None:
+	def handle_changes(self) -> None:
 		"""
-		Create trade statuses for participants.
+		Handle changes to the trade.
 		"""
-		if not self.parent:
+		# If the trade is vetoed, mark it as done
+		if self.is_vetoed:
+			self.done = True
+
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=participant.owner,
+						message="A trade you are involved in has been vetoed by the commissioners.",
+						level="warning",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for participant in self.participants.all()
+				],
+			)
+
+			return
+
+		# If the trade is finalized, transfer all assets
+		if self.is_approved:
+			for asset in self.assets.all():
+				asset.transfer_asset()
+
+			self.done = True
+
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=participant.owner,
+						message="A trade you are involved in has been approved and assets have been transferred.",
+						level="success",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for participant in self.participants.all()
+				],
+			)
+
+			# Warn everyone else in the league about the completed trade
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=team.owner,
+						message="A trade has been completed in the league.",
+						level="info",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for team in Team.objects.exclude(id__in=self.participants.all().values_list("id", flat=True))
+				],
+			)
+
+			return
+
+		# When the trade is sent, create trade statuses for participants
+		if self.is_waiting_acceptance and not self.is_counteroffer:
 			TradeStatus.objects.bulk_create(
 				[
 					TradeStatus(trade=self, actioned_by=participant, status="sent")
@@ -82,12 +140,173 @@ class Trade(models.Model):
 				],
 			)
 
-		TradeStatus.objects.bulk_create(
-			[
-				TradeStatus(trade=self, actioned_by=commissioner, status="pending")
-				for commissioner in self.get_commissioners()
-			],
-		)
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=participant.owner,
+						message="A new trade has been proposed involving your team.",
+						level="info",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for participant in self.participants.all()
+				],
+			)
+
+			return
+
+		# If the trade is a counteroffer and is the latest, mark the parent trade as done
+		if self.is_counteroffer and self.parent and self.parent.is_latest:
+			self.parent.done = True
+			self.parent.save()
+
+			Notification.objects.create(
+				user=self.parent.sender.owner,
+				message=f"A counteroffer has been made to your trade proposal by {self.sender.owner}.",
+				level="info",
+				redirect_to=f"/trades/{self.parent.pk}/",
+			)
+
+			return
+
+		# If the trade is rejected, mark it as done
+		if self.is_rejected:
+			self.done = True
+
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=participant.owner,
+						message="A trade you are involved in has been rejected by one of the parties.",
+						level="info",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for participant in self.participants.all()
+				],
+			)
+
+			return
+
+		# If the trade is accepted by all parties, notify everyone involved
+		if self.is_accepted:
+			# Commissioners, for review
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=commissioner.owner,
+						message="A trade has been accepted and requires your review as a commissioner.",
+						level="info",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for commissioner in self.get_commissioners()
+				],
+			)
+
+			# Participants, for information
+			Notification.objects.bulk_create(
+				[
+					Notification(
+						user=participant.owner,
+						message="A trade you are involved in has been accepted by all parties.",
+						level="info",
+						redirect_to=f"/trades/{self.pk}/",
+					)
+					for participant in self.participants.all()
+				],
+			)
+
+			# Create trade statuses for commissioners
+			TradeStatus.objects.bulk_create(
+				[
+					TradeStatus(trade=self, actioned_by=commissioner, status="pending")
+					for commissioner in self.get_commissioners()
+				],
+			)
+
+			return
+
+	@atomic
+	def make_counteroffer(self, offer: "Trade") -> "Trade":
+		"""
+		Create a counteroffer trade based on this trade.
+
+		Args:
+			offer (Trade): The trade offer to base the counteroffer on.
+
+		Returns:
+			Trade: The newly created counteroffer trade.
+		"""
+		counteroffer = Trade.objects.create(sender=offer.sender, parent=self)
+
+		counteroffer.participants.set(self.participants.all())
+
+		for asset in offer.assets.all():
+			asset.pk = None  # Reset primary key to create a new object
+			asset.trade = counteroffer
+			asset.save()
+
+		counteroffer.handle_changes()
+
+		return counteroffer
+
+	@atomic
+	def make_accept(self, team: Team) -> None:
+		"""
+		Mark the trade as accepted by a participant.
+
+		Args:
+			team (Team): The team accepting the trade.
+		"""
+		TradeStatus.objects.create(trade=self, actioned_by=team, status="accepted")
+
+		self.handle_changes()
+
+	@atomic
+	def make_reject(self, team: Team) -> None:
+		"""
+		Mark the trade as rejected by a participant.
+
+		Args:
+			team (Team): The team rejecting the trade.
+		"""
+		TradeStatus.objects.create(trade=self, actioned_by=team, status="rejected")
+
+		self.handle_changes()
+
+	@atomic
+	def make_approve(self, team: Team) -> None:
+		"""
+		Mark the trade as approved by a commissioner or admin.
+
+		Raises:
+			ValidationError: If the team is not a commissioner or admin.
+
+		Args:
+			team (Team): The team approving the trade.
+		"""
+		if not team.owner.is_superuser and not team.owner.is_staff:
+			raise ValidationError("Only commissioners or admins can approve trades.")
+
+		TradeStatus.objects.create(trade=self, actioned_by=team, status="approved")
+
+		self.handle_changes()
+
+	@atomic
+	def make_veto(self, team: Team) -> None:
+		"""
+		Mark the trade as vetoed by a commissioner or admin.
+
+		Raises:
+			ValidationError: If the team is not a commissioner or admin.
+
+		Args:
+			team (Team): The team vetoing the trade.
+		"""
+		if not team.owner.is_superuser and not team.owner.is_staff:
+			raise ValidationError("Only commissioners or admins can veto trades.")
+
+		TradeStatus.objects.create(trade=self, actioned_by=team, status="vetoed")
+
+		self.handle_changes()
 
 	@property
 	def is_latest(self) -> bool:
@@ -95,23 +314,126 @@ class Trade(models.Model):
 		return not self.succeeded_by.exists()
 
 	@property
-	def status(self) -> int:
-		"""
-		Determine the current status of the trade.
+	def is_waiting_acceptance(self) -> bool:
+		"""Check if the trade is waiting for acceptance from participants."""
+		return self.is_latest and not self.is_accepted and not self.is_rejected
 
-		Raises:
-			ValidationError: If the status is unknown.
+	@property
+	def is_counteroffer(self) -> bool:
+		"""Check if the trade is a counteroffer (has a parent trade)."""
+		return self.parent is not None
+
+	@property
+	def is_accepted(self) -> bool:
+		"""
+		Check if all participants have accepted the trade.
 
 		Returns:
-			int: 0 for open, -1 for closed, 1 for done.
+			bool: True if all participants have accepted, False otherwise.
 		"""
 		statuses = self.statuses.all()
+		accepted_status = "accepted"
 
-		for status in statuses:
-			if status.current_status != 0:
-				return status.current_status
+		for participant in self.participants.all():
+			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
 
-		raise ValidationError("Unknown status")
+			if participant.id != self.sender.id and (
+				not participant_statuses.exists() or participant_statuses.first().status != accepted_status
+			):
+				return False
+
+		return self.participants.exists()
+
+	@property
+	def is_rejected(self) -> bool:
+		"""
+		Check if any participant has rejected the trade.
+
+		Returns:
+			bool: True if any participant has rejected, False otherwise.
+		"""
+		statuses = self.statuses.all()
+		rejected_status = "rejected"
+
+		for participant in self.participants.all():
+			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
+
+			if participant_statuses.exists() and participant_statuses.first().status == rejected_status:
+				return True
+
+		return False
+
+	@property
+	def is_approved(self) -> bool:
+		"""
+		Check if the trade has been approved.
+		A trade is approved if it's approved by at least one admin or by the majority of commissioners.
+
+		Returns:
+			bool: True if the trade is approved, False otherwise.
+		"""
+		statuses = self.statuses.all()
+		approved_status = "approved"
+
+		# Check for admin approval
+		for admin in self.get_admins():
+			admin_statuses = statuses.filter(actioned_by=admin).order_by("-created_at")
+
+			if admin_statuses.exists() and admin_statuses.first().status == approved_status:
+				return True
+
+		# Check for commissioner approval
+		approvals = 0
+		total_commissioners = self.get_commissioners().count()
+
+		for commissioner in self.get_commissioners():
+			commissioner_statuses = statuses.filter(actioned_by=commissioner).order_by("-created_at")
+
+			if commissioner_statuses.exists() and commissioner_statuses.first().status == approved_status:
+				approvals += 1
+
+		return approvals > total_commissioners / 2
+
+	@property
+	def is_vetoed(self) -> bool:
+		"""
+		Check if the trade has been vetoed.
+		A trade is vetoed if any admin or the majority of commissioners veto it.
+
+		Returns:
+			bool: True if the trade is vetoed, False otherwise.
+		"""
+		statuses = self.statuses.all()
+		vetoed_status = "vetoed"
+
+		# Check for admin veto
+		for admin in self.get_admins():
+			admin_statuses = statuses.filter(actioned_by=admin).order_by("-created_at")
+
+			if admin_statuses.exists() and admin_statuses.first().status == vetoed_status:
+				return True
+
+		# Check for commissioner veto
+		vetoes = 0
+		total_commissioners = self.get_commissioners().count()
+
+		for commissioner in self.get_commissioners():
+			commissioner_statuses = statuses.filter(actioned_by=commissioner).order_by("-created_at")
+
+			if commissioner_statuses.exists() and commissioner_statuses.first().status == vetoed_status:
+				vetoes += 1
+
+		return vetoes > total_commissioners / 2
+
+	@property
+	def is_finalized(self) -> bool:
+		"""
+		Check if the trade is finalized (accepted and approved).
+
+		Returns:
+			bool: True if the trade is finalized, False otherwise.
+		"""
+		return self.is_accepted and self.is_approved
 
 	@property
 	def participant_statuses(self) -> dict[int, str]:
@@ -164,73 +486,64 @@ class Trade(models.Model):
 		return status_dict
 
 	@property
-	def is_accepted(self) -> bool:
+	def accepted_by(self) -> QuerySet[Team]:
 		"""
-		Check if all participants have accepted the trade.
+		Get all participants who have accepted the trade.
 
 		Returns:
-			bool: True if all participants have accepted, False otherwise.
+			QuerySet: A queryset of teams who have accepted the trade.
 		"""
-		statuses = self.statuses.all()
 		accepted_status = "accepted"
+		accepted_participants = []
 
 		for participant in self.participants.all():
-			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
+			participant_statuses = self.statuses.filter(actioned_by=participant).order_by("-created_at")
 
-			if not participant_statuses.exists() or participant_statuses.first().status != accepted_status:
-				return False
+			if participant_statuses.exists() and participant_statuses.first().status == accepted_status:
+				accepted_participants.append(participant)
 
-		return True
+		return Team.objects.filter(id__in=[team.id for team in accepted_participants])
 
 	@property
-	def is_rejected(self) -> bool:
+	def rejected_by(self) -> QuerySet[Team]:
 		"""
-		Check if any participant has rejected the trade.
+		Get all participants who have rejected the trade.
 
 		Returns:
-			bool: True if any participant has rejected, False otherwise.
+			QuerySet: A queryset of teams who have rejected the trade.
 		"""
-		statuses = self.statuses.all()
 		rejected_status = "rejected"
+		rejected_participants = []
 
 		for participant in self.participants.all():
-			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
+			participant_statuses = self.statuses.filter(actioned_by=participant).order_by("-created_at")
 
 			if participant_statuses.exists() and participant_statuses.first().status == rejected_status:
-				return True
+				rejected_participants.append(participant)
 
-		return False
+		return Team.objects.filter(id__in=[team.id for team in rejected_participants])
 
 	@property
-	def is_approved(self) -> bool:
+	def timeline(self) -> list[TimelineEntry]:
 		"""
-		Check if the trade has been approved.
-		A trade is approved if it's approved by at least one admin or by the majority of commissioners.
+		The timeline of the trade.
 
 		Returns:
-			bool: True if the trade is approved, False otherwise.
+			list[TimelineEntry]: A list of timeline entries for the trade.
 		"""
-		statuses = self.statuses.all()
-		approved_status = "approved"
+		timeline_entries: dict[str, TimelineEntry] = defaultdict(str)
 
-		# Check for admin approval
-		for admin in self.get_admins():
-			admin_statuses = statuses.filter(actioned_by=admin).order_by("-created_at")
+		for status in self.statuses.all().order_by("created_at"):
+			entry = self.construct_timeline_entry(status)
 
-			if admin_statuses.exists() and admin_statuses.first().status == approved_status:
-				return True
+			if entry is None:
+				continue
 
-		# Check for commissioner approval
-		approvals = 0
-		total_commissioners = self.get_commissioners().count()
+			hash_key = f"{entry.team.id if entry.team else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
+			timeline_entries[hash_key] = entry
 
-		for commissioner in self.get_commissioners():
-			commissioner_statuses = statuses.filter(actioned_by=commissioner).order_by("-created_at")
-
-			if commissioner_statuses.exists() and commissioner_statuses.first().status == approved_status:
-				approvals += 1
-
-		return approvals > total_commissioners / 2
+		# Sort timeline entries by timestamp
+		return sorted(timeline_entries.values(), key=lambda x: x.timestamp)
 
 	def get_commissioners(self) -> QuerySet[Team]:
 		"""
@@ -240,7 +553,7 @@ class Trade(models.Model):
 			QuerySet: A queryset of commissioner teams.
 		"""
 		return (
-			Team.objects.filter(owner__in=User.objects.filter(is_staff=True))
+			Team.objects.filter(owner__in=User.objects.filter(is_staff=True).exclude(is_superuser=True))
 			if self.is_accepted
 			else Team.objects.none()
 		)
@@ -256,4 +569,61 @@ class Trade(models.Model):
 			Team.objects.filter(owner__in=User.objects.filter(is_superuser=True))
 			if self.is_accepted
 			else Team.objects.none()
+		)
+
+	def construct_timeline_entry(self, entry: TradeStatus) -> Optional[TimelineEntry]:
+		"""
+		Construct a timeline entry for the trade.
+
+		Args:
+			entry (TradeStatus): The trade status entry to construct the timeline entry from.
+
+		Raises:
+			ValidationError: If the trade status is unknown.
+
+		Returns:
+			TimelineEntry: The constructed timeline entry.
+		"""
+		team = None
+		action = None
+		description = None
+
+		if entry.status == "sent" and self.sender == entry.actioned_by:
+			action = "counteroffered" if self.is_counteroffer else "proposed"
+			description = (
+				f"A {'counteroffer' if self.is_counteroffer else 'trade'} was proposed by {entry.actioned_by}."
+			)
+
+		elif entry.status == "accepted":
+			action = "accepted"
+			description = f"The trade was accepted by {entry.actioned_by}."
+
+		elif entry.status == "rejected":
+			action = "rejected"
+			description = f"The trade was rejected by {entry.actioned_by}."
+
+		elif self.is_approved:
+			action = "approved"
+			description = "The trade was approved."
+
+		elif self.is_vetoed:
+			action = "vetoed"
+			description = "The trade was vetoed."
+
+		if action not in {"approved", "vetoed"}:
+			team = entry.actioned_by
+
+		if action is None or description is None:
+			if entry.status not in {"pending", "sent"}:
+				raise ValidationError(f"Unknown trade status for timeline entry: {entry.status}")
+
+			return None
+
+		return Box(
+			TimelineEntry(
+				team=team,
+				action=action,
+				timestamp=entry.created_at,
+				description=description,
+			),
 		)

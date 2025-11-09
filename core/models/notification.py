@@ -12,7 +12,7 @@ class Notification(models.Model):
 		("warning", "Warning"),
 		("error", "Error"),
 	)
-	user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notifications")
+	user = models.ForeignKey("core.User", on_delete=models.CASCADE, related_name="notifications")
 	message = models.CharField(max_length=255)
 	is_read = models.BooleanField(default=False)
 	priority = models.PositiveIntegerField(
@@ -25,6 +25,7 @@ class Notification(models.Model):
 		default="info",
 		help_text="Notification level",
 	)
+	redirect_to = models.CharField(max_length=255, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

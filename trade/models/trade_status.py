@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -5,19 +7,17 @@ from django.db import models
 class TradeStatus(models.Model):
 	"""The status of a trade."""
 
-	TRADE_STATUS_CHOICES = (
-		("draft", "DRAFT"),
-		("sent", "SENT"),
-		("rejected", "REJECTED"),
-		("counteroffer", "COUNTEROFFER"),
-		("accepted", "ACCEPTED"),
-		("pending", "PENDING"),
-		("vetoed", "VETOED"),
-		("approved", "APPROVED"),
-	)
+	class TradeStatusChoices(Enum):
+		"""Enumeration of possible trade statuses."""
+		SENT = ("sent", "SENT")
+		REJECTED = ("rejected", "REJECTED")
+		ACCEPTED = ("accepted", "ACCEPTED")
+		PENDING = ("pending", "PENDING")
+		VETOED = ("vetoed", "VETOED")
+		APPROVED = ("approved", "APPROVED")
 
 	trade = models.ForeignKey("trade.Trade", on_delete=models.CASCADE, related_name="statuses")
-	status = models.CharField(max_length=20, choices=TRADE_STATUS_CHOICES)
+	status = models.CharField(max_length=20, choices=TradeStatusChoices._hashable_values_)
 	actioned_by = models.ForeignKey("core.Team", on_delete=models.CASCADE, related_name="trade_actions")
 
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -44,16 +44,15 @@ class TradeStatus(models.Model):
 			ValidationError: If the status is unknown.
 		"""
 		user_statuses = {
-			self.TRADE_STATUS_CHOICES[0][0],
-			self.TRADE_STATUS_CHOICES[1][0],
-			self.TRADE_STATUS_CHOICES[2][0],
-			self.TRADE_STATUS_CHOICES[3][0],
-			self.TRADE_STATUS_CHOICES[4][0],
+			self.TradeStatusChoices.SENT.value[0],
+			self.TradeStatusChoices.REJECTED.value[0],
+			self.TradeStatusChoices.ACCEPTED.value[0],
 		}
 
 		commissioner_statuses = {
-			self.TRADE_STATUS_CHOICES[5][0],
-			self.TRADE_STATUS_CHOICES[6][0],
+			self.TradeStatusChoices.PENDING.value[0],
+			self.TradeStatusChoices.VETOED.value[0],
+			self.TradeStatusChoices.APPROVED.value[0],
 		}
 
 		if (self.actioned_by.owner.is_staff or self.actioned_by.owner.is_superuser) and self.status in user_statuses:
@@ -79,13 +78,13 @@ class TradeStatus(models.Model):
 			int: 0 for open, -1 for closed, 1 for done.
 		"""
 		is_open = {
-			self.TRADE_STATUS_CHOICES[0][0],
-			self.TRADE_STATUS_CHOICES[1][0],
-			self.TRADE_STATUS_CHOICES[3][0],
-			self.TRADE_STATUS_CHOICES[4][0],
+			self.TradeStatusChoices[0][0],
+			self.TradeStatusChoices[1][0],
+			self.TradeStatusChoices[3][0],
+			self.TradeStatusChoices[4][0],
 		}
-		is_closed = {self.TRADE_STATUS_CHOICES[2][0], self.TRADE_STATUS_CHOICES[5][0]}
-		is_done = {self.TRADE_STATUS_CHOICES[6][0]}
+		is_closed = {self.TradeStatusChoices[2][0], self.TradeStatusChoices[5][0]}
+		is_done = {self.TradeStatusChoices[6][0]}
 
 		if self.status in is_open:
 			return 0

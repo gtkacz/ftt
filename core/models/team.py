@@ -11,7 +11,7 @@ class Team(models.Model):
 	"""Model representing a basketball team."""
 
 	name = models.CharField(max_length=100)
-	owner = models.OneToOneField("User", on_delete=models.CASCADE, related_name="team")
+	owner = models.OneToOneField("core.User", on_delete=models.CASCADE, related_name="team")
 	# avatar = models.ImageField(upload_to='team_avatars/', null=True, blank=True, default='team_avatars/logo.png')  # noqa: ERA001
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
