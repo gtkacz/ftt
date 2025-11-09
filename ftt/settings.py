@@ -244,3 +244,8 @@ LOGGING = {
 		},
 	},
 }
+
+if not ENV.CLICKSEND_USERNAME or not ENV.CLICKSEND_API_KEY:
+	raise ValueError(
+		"CLICKSEND_USERNAME and CLICKSEND_API_KEY must be set in environment variables for SMS functionality.",
+	)

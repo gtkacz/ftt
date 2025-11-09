@@ -1,5 +1,8 @@
 from django.db import models
 
+from ftt.common.singletons.sms import get_sms_service
+from ftt.settings import ENV
+
 
 class Notification(models.Model):
 	"""Model representing a notification for a user."""
@@ -27,3 +30,9 @@ class Notification(models.Model):
 
 	def __str__(self) -> str:
 		return f"Notification for {self.user.username}: {self.message}"
+
+	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D102
+		if not self.pk and ENV.SEND_SMS_MESSAGES:
+			get_sms_service().send_sms(f"New notification: {self.message}")
+
+		super().save(*args, **kwargs)

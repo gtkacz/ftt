@@ -11,6 +11,7 @@ class TradeStatus(models.Model):
 		("rejected", "REJECTED"),
 		("counteroffer", "COUNTEROFFER"),
 		("accepted", "ACCEPTED"),
+		("pending", "PENDING"),
 		("vetoed", "VETOED"),
 		("approved", "APPROVED"),
 	)

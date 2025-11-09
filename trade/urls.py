@@ -1,8 +1,13 @@
+from django.conf.urls import include
 from django.urls import path
+from rest_framework import routers
 
 from .views.trade import TradeViewSet
 
+router = routers.DefaultRouter()
+
+router.register(r"trades", TradeViewSet, basename="trade")
+
 urlpatterns = [
-	# Pick endpoints
-	path("trades/", TradeViewSet.as_view({"get": "list"}), name="trade-list"),
+	path("", include(router.urls)),
 ]
