@@ -1,15 +1,15 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from core.serializers import SimplePlayerSerializer, TeamSerializer
+from core.serializers import SimplePlayerSerializer, SimpleTeamSerializer
 from draft.serializers.pick import PickSerializer
 from trade.models import Trade
 from trade.types.assets import Asset
 
 
 class TradeSerializer(ModelSerializer):  # noqa: D101
-	sender = TeamSerializer()
-	participants = TeamSerializer(many=True)
+	sender = SimpleTeamSerializer()
+	participants = SimpleTeamSerializer(many=True)
 	assets = SerializerMethodField()
 	status = SerializerMethodField()
 

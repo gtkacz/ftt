@@ -77,7 +77,7 @@ class NBATeamSerializer(serializers.ModelSerializer):
 		read_only_fields = ["id", "created_at"]
 
 
-class TeamSerializer(serializers.ModelSerializer):
+class SimpleTeamSerializer(serializers.ModelSerializer):
 	owner_username = serializers.CharField(
 		source="owner.username",
 		read_only=True,
@@ -93,14 +93,6 @@ class TeamSerializer(serializers.ModelSerializer):
 	)
 	can_bid = serializers.SerializerMethodField(
 		help_text="Whether the team can bid on players based on current roster and salary cap",
-	)
-	players = serializers.SerializerMethodField(
-		help_text="List of players currently on the team",
-	)
-	current_picks = PickSerializer(
-		many=True,
-		read_only=True,
-		help_text="List of draft picks owned by the team",
 	)
 
 	class Meta:
@@ -123,6 +115,17 @@ class TeamSerializer(serializers.ModelSerializer):
 	def get_can_bid(self, obj: Team) -> bool:
 		return obj.can_bid()
 
+
+class TeamSerializer(SimpleTeamSerializer):
+	players = serializers.SerializerMethodField(
+		help_text="List of players currently on the team",
+	)
+	current_picks = PickSerializer(
+		many=True,
+		read_only=True,
+		help_text="List of draft picks owned by the team",
+	)
+
 	def get_players(self, obj: Team) -> list:
 		return SimplePlayerSerializer(obj.players.all(), many=True).data
 
@@ -140,7 +143,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ContractSerializer(serializers.ModelSerializer):
-	team = TeamSerializer(
+	team = SimpleTeamSerializer(
 		read_only=True,
 		help_text="Team information for the contract, if applicable",
 	)
@@ -253,7 +256,7 @@ class PlayerSerializer(SimplePlayerSerializer):
 
 	def get_team(self, obj: Player) -> dict:
 		if hasattr(obj, "contract"):
-			return TeamSerializer(obj.contract.team).data
+			return SimpleTeamSerializer(obj.contract.team).data
 
 		return {}
 

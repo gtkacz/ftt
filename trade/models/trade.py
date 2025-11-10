@@ -10,6 +10,7 @@ from django.db.transaction import atomic
 from core.models import Notification, Team, User
 from ftt.common.util import django_obj_to_dict
 from ftt.settings import LEAGUE_SETTINGS
+from trade.enums.trade_statuses import TradeStatuses
 from trade.models.trade_status import TradeStatus
 from trade.types.timeline import TimelineEntry
 
@@ -135,7 +136,7 @@ class Trade(models.Model):
 		if self.is_waiting_acceptance and not self.is_counteroffer:
 			TradeStatus.objects.bulk_create(
 				[
-					TradeStatus(trade=self, actioned_by=participant, status="sent")
+					TradeStatus(trade=self, actioned_by=participant, status=TradeStatuses.SENT)
 					for participant in self.participants.all()
 				],
 			)
@@ -217,12 +218,35 @@ class Trade(models.Model):
 			# Create trade statuses for commissioners
 			TradeStatus.objects.bulk_create(
 				[
-					TradeStatus(trade=self, actioned_by=commissioner, status="pending")
+					TradeStatus(trade=self, actioned_by=commissioner, status=TradeStatuses.PENDING)
 					for commissioner in self.get_commissioners()
 				],
 			)
 
 			return
+
+	def make_route(self, action: str, team: Team) -> None:
+		"""
+		Route the action to the appropriate method.
+
+		Raises:
+			ValidationError: If the action is invalid.
+
+		Args:
+			action (str): The action to perform.
+			team (Team): The team performing the action.
+		"""
+		action_method_map = {
+			TradeStatuses.REJECTED.value: self.make_reject,
+			TradeStatuses.ACCEPTED.value: self.make_accept,
+			TradeStatuses.APPROVED.value: self.make_approve,
+			TradeStatuses.VETOED.value: self.make_veto,
+		}
+
+		if action not in action_method_map:
+			raise ValidationError(f"Invalid action: {action}")
+
+		return action_method_map[action](team)
 
 	@atomic
 	def make_counteroffer(self, offer: "Trade") -> "Trade":
@@ -256,7 +280,7 @@ class Trade(models.Model):
 		Args:
 			team (Team): The team accepting the trade.
 		"""
-		TradeStatus.objects.create(trade=self, actioned_by=team, status="accepted")
+		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.ACCEPTED)
 
 		self.handle_changes()
 
@@ -268,7 +292,7 @@ class Trade(models.Model):
 		Args:
 			team (Team): The team rejecting the trade.
 		"""
-		TradeStatus.objects.create(trade=self, actioned_by=team, status="rejected")
+		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.REJECTED)
 
 		self.handle_changes()
 
@@ -286,7 +310,7 @@ class Trade(models.Model):
 		if not team.owner.is_superuser and not team.owner.is_staff:
 			raise ValidationError("Only commissioners or admins can approve trades.")
 
-		TradeStatus.objects.create(trade=self, actioned_by=team, status="approved")
+		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.APPROVED)
 
 		self.handle_changes()
 
@@ -304,7 +328,7 @@ class Trade(models.Model):
 		if not team.owner.is_superuser and not team.owner.is_staff:
 			raise ValidationError("Only commissioners or admins can veto trades.")
 
-		TradeStatus.objects.create(trade=self, actioned_by=team, status="vetoed")
+		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.VETOED)
 
 		self.handle_changes()
 
@@ -332,7 +356,7 @@ class Trade(models.Model):
 			bool: True if all participants have accepted, False otherwise.
 		"""
 		statuses = self.statuses.all()
-		accepted_status = "accepted"
+		accepted_status = TradeStatuses.ACCEPTED
 
 		for participant in self.participants.all():
 			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
@@ -353,7 +377,7 @@ class Trade(models.Model):
 			bool: True if any participant has rejected, False otherwise.
 		"""
 		statuses = self.statuses.all()
-		rejected_status = "rejected"
+		rejected_status = TradeStatuses.REJECTED
 
 		for participant in self.participants.all():
 			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
@@ -373,7 +397,7 @@ class Trade(models.Model):
 			bool: True if the trade is approved, False otherwise.
 		"""
 		statuses = self.statuses.all()
-		approved_status = "approved"
+		approved_status = TradeStatuses.APPROVED
 
 		# Check for admin approval
 		for admin in self.get_admins():
@@ -404,7 +428,7 @@ class Trade(models.Model):
 			bool: True if the trade is vetoed, False otherwise.
 		"""
 		statuses = self.statuses.all()
-		vetoed_status = "vetoed"
+		vetoed_status = TradeStatuses.VETOED
 
 		# Check for admin veto
 		for admin in self.get_admins():
@@ -493,7 +517,7 @@ class Trade(models.Model):
 		Returns:
 			QuerySet: A queryset of teams who have accepted the trade.
 		"""
-		accepted_status = "accepted"
+		accepted_status = TradeStatuses.ACCEPTED
 		accepted_participants = []
 
 		for participant in self.participants.all():
@@ -512,7 +536,7 @@ class Trade(models.Model):
 		Returns:
 			QuerySet: A queryset of teams who have rejected the trade.
 		"""
-		rejected_status = "rejected"
+		rejected_status = TradeStatuses.REJECTED
 		rejected_participants = []
 
 		for participant in self.participants.all():
@@ -588,33 +612,33 @@ class Trade(models.Model):
 		action = None
 		description = None
 
-		if entry.status == "sent" and self.sender == entry.actioned_by:
+		if entry.status == TradeStatuses.SENT and self.sender == entry.actioned_by:
 			action = "counteroffered" if self.is_counteroffer else "proposed"
 			description = (
 				f"A {'counteroffer' if self.is_counteroffer else 'trade'} was proposed by {entry.actioned_by}."
 			)
 
-		elif entry.status == "accepted":
-			action = "accepted"
+		elif entry.status == TradeStatuses.ACCEPTED:
+			action = TradeStatuses.ACCEPTED
 			description = f"The trade was accepted by {entry.actioned_by}."
 
-		elif entry.status == "rejected":
-			action = "rejected"
+		elif entry.status == TradeStatuses.REJECTED:
+			action = TradeStatuses.REJECTED
 			description = f"The trade was rejected by {entry.actioned_by}."
 
 		elif self.is_approved:
-			action = "approved"
+			action = TradeStatuses.APPROVED
 			description = "The trade was approved."
 
 		elif self.is_vetoed:
-			action = "vetoed"
+			action = TradeStatuses.VETOED
 			description = "The trade was vetoed."
 
-		if action not in {"approved", "vetoed"}:
+		if action not in {TradeStatuses.APPROVED, TradeStatuses.VETOED}:
 			team = entry.actioned_by
 
 		if action is None or description is None:
-			if entry.status not in {"pending", "sent"}:
+			if entry.status not in {TradeStatuses.PENDING, TradeStatuses.SENT}:
 				raise ValidationError(f"Unknown trade status for timeline entry: {entry.status}")
 
 			return None

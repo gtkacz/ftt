@@ -9,6 +9,7 @@ class TradeStatus(models.Model):
 
 	class TradeStatusChoices(Enum):
 		"""Enumeration of possible trade statuses."""
+
 		SENT = ("sent", "SENT")
 		REJECTED = ("rejected", "REJECTED")
 		ACCEPTED = ("accepted", "ACCEPTED")
@@ -55,7 +56,14 @@ class TradeStatus(models.Model):
 			self.TradeStatusChoices.APPROVED.value[0],
 		}
 
-		if (self.actioned_by.owner.is_staff or self.actioned_by.owner.is_superuser) and self.status in user_statuses:
+		if self.actioned_by == self.trade.sender and self.status in list(user_statuses)[1:]:
+			raise ValidationError(f"You cannot perform {self.status}.")
+
+		if (
+			(self.actioned_by.owner.is_staff or self.actioned_by.owner.is_superuser)
+			and self.actioned_by not in self.trade.participants.all()
+			and self.status in user_statuses
+		):
 			raise ValidationError("Commissioners cannot use user statuses.")
 
 		if (
