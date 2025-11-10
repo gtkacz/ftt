@@ -3,10 +3,12 @@ from datetime import datetime, time, timedelta
 from json import loads
 from zoneinfo import ZoneInfo
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
-from core.models import Contract, Notification, Player
+from core.models import Contract, Notification, Player, Team
+from draft.models.pick import Pick
 from ftt.common.util import get_number_suffix
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,111 @@ class DraftPick(models.Model):
 
 	def __str__(self) -> str:
 		return f"{self.draft.year} Draft - Round {self.pick.round_number}, Pick {self.pick_number} ({self.pick.current_team.name})"  # pyright: ignore[reportAttributeAccessIssue]  # noqa: E501
+
+	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+		"""Override save to handle pick protection transfer."""
+		if self.pick and self.draft:
+			self._handle_draft_pick_transfer()
+
+		super().save(*args, **kwargs)
+
+	def _get_paired_pick(self) -> Pick:
+		"""
+		Gets the draft pick that is paired with this pick for swap protection.
+
+		Raises:
+			ValidationError: If no paired pick is found.
+
+		Returns:
+			Pick: The paired draft pick if it exists, otherwise None.
+		"""
+		metadata = loads(self.pick.metadata) if isinstance(self.pick.metadata, str) else self.pick.metadata
+
+		paired_pick_info = metadata.get("swapped_with_pick_id", None)
+
+		if paired_pick_info is None:
+			raise ValidationError("No paired pick found for swap protection.")
+
+		pick = Pick.objects.filter(id=paired_pick_info)
+
+		if not pick.exists():
+			raise ValidationError("No paired pick found for swap protection.")
+
+		return pick.first()
+
+	def _handle_draft_pick_transfer(self) -> None:  # noqa: PLR0911
+		"""
+		Handles the transfer of a draft pick to the receiver team.
+
+		Raises:
+			ValidationError: If the protection type is unknown.
+
+		This method updates the team associated with the draft pick.
+		"""
+		if not self.is_part_of_trade or self.pick.protection_conveyed:
+			return
+
+		if self.pick.protection == Pick.ProtectionChoices.UNPROTECTED.value[0]:
+			self.pick.protection_conveyed = True
+			return
+
+		if self.pick.protection == Pick.ProtectionChoices.TOP_X.value[0]:
+			if self.overall_pick > self.pick.top_x_value:
+				metadata = (
+					loads(self.pick.protection_metadata)
+					if isinstance(self.pick.protection_metadata, str)
+					else self.pick.protection_metadata
+				)
+
+				conveys_to_team_id = metadata.get("conveys_to_team_id", None)
+
+				if conveys_to_team_id is None:
+					raise ValidationError("conveys_to_team_id is missing in protection metadata for TOP_X protection.")
+
+				conveys_to = Team.objects.get(id=conveys_to_team_id)
+
+				self.pick.current_team = conveys_to
+				self.pick.protection_conveyed = True
+
+			return
+
+		if self.pick.protection == Pick.ProtectionChoices.SWAP_BEST.value[0]:
+			paired_pick = self._get_paired_pick()
+
+			if self.overall_pick < paired_pick.draft_positions.overall_pick:
+				return
+
+			paired_team = paired_pick.current_team
+
+			paired_pick.current_team = self.pick.current_team
+			paired_pick.protection_conveyed = True
+
+			self.pick.current_team = paired_team
+			self.pick.protection_conveyed = True
+
+			paired_pick.save()
+
+			return
+
+		if self.pick.protection == Pick.ProtectionChoices.SWAP_WORST.value[0]:
+			paired_pick = self._get_paired_pick()
+
+			if self.overall_pick > paired_pick.draft_positions.overall_pick:
+				return
+
+			paired_team = paired_pick.current_team
+
+			paired_pick.current_team = self.pick.current_team
+			paired_pick.protection_conveyed = True
+
+			self.pick.current_team = paired_team
+			self.pick.protection_conveyed = True
+
+			paired_pick.save()
+
+			return
+
+		raise ValidationError("Unknown draft pick protection type.")
 
 	def generate_contract(self) -> Contract:  # noqa: C901, PLR0912
 		"""
@@ -382,3 +489,17 @@ class DraftPick(models.Model):
 				message=f"Your team will be on the clock in {next_pick.overall_pick - draft_pick.overall_pick} picks in the {self.draft.year} {'league' if self.draft.is_league_draft else ''} draft.",
 				level="info",
 			)
+
+	@property
+	def is_part_of_trade(self) -> bool:
+		"""Check if the draft pick is currently part of a trade."""
+		from trade.models.trade import Trade  # noqa: PLC0415
+		from trade.models.trade_asset import TradeAsset  # noqa: PLC0415
+
+		assets = TradeAsset.objects.filter(draft_pick=self)
+		trades = Trade.objects.filter(assets__in=assets)
+
+		if not assets.exists() or not trades.exists():
+			return False
+
+		return any(trade.is_finalized for trade in trades)
