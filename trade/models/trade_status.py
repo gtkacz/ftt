@@ -24,7 +24,7 @@ class TradeStatus(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		ordering = ("created_at", "updated_at")
 		unique_together = (("trade", "actioned_by", "status"),)
 		indexes = (

@@ -82,9 +82,9 @@ class AutoDraftScheduler:
 				self.timer.start()
 
 	def _calculate_next_wake_time(self) -> Optional[datetime]:
-		"""Calculate when the next pick should expire across all active drafts."""  # noqa: DOC201
+		"""Calculate when the next pick should expire across all active drafts."""
 		try:
-			from draft.models import Draft, DraftPick  # noqa: PLC0415
+			from draft.models import Draft, DraftPick
 
 			# Get all active drafts
 			active_drafts = Draft.objects.filter(is_completed=False, starts_at__lte=timezone.now())
@@ -113,7 +113,7 @@ class AutoDraftScheduler:
 
 	@staticmethod
 	def _calculate_pick_expiry_time(draft_pick: "DraftPick") -> Optional[datetime]:
-		"""Calculate the exact time when a draft pick will expire."""  # noqa: DOC201
+		"""Calculate the exact time when a draft pick will expire."""
 		try:
 			if not draft_pick.started_at:
 				return None

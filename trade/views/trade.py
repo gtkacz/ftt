@@ -16,20 +16,23 @@ if TYPE_CHECKING:
 	from trade.types.asset_payload import AssetPayload
 
 
-class TradeViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   GenericViewSet):
+class TradeViewSet(
+	mixins.CreateModelMixin,
+	mixins.RetrieveModelMixin,
+	mixins.UpdateModelMixin,
+	mixins.DestroyModelMixin,
+	mixins.ListModelMixin,
+	GenericViewSet,
+):
 	"""
 	A viewset for viewing and editing trade instances.
 	"""
+
 	serializer_class = TradeSerializer
 	permission_classes = (IsAuthenticated,)
 
 	def get_queryset(self) -> Trade:
-		"""Restrict trades to those involving the authenticated user's team."""  # noqa: DOC201
+		"""Restrict trades to those involving the authenticated user's team."""
 		user = self.request.user
 		queryset = Trade.objects.filter(participants__owner=user).distinct()
 
@@ -38,8 +41,8 @@ class TradeViewSet(mixins.CreateModelMixin,
 
 		return queryset
 
-	def create(self, request: Request, *args, **kwargs) -> Response:  # noqa: ANN002, ANN003
-		"""Override create to create the underlying trade assets."""  # noqa: DOC201
+	def create(self, request: Request, *args, **kwargs) -> Response:
+		"""Override create to create the underlying trade assets."""
 		assets_data: list[AssetPayload] = request.data
 
 		# We need to transform the payload to just have `sender` `participants`

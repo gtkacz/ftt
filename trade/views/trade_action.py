@@ -11,9 +11,10 @@ from trade.models import Trade
 
 class TradeActionView(APIView):
 	"""View to handle trade actions like accept, reject, and counteroffer."""
+
 	permission_classes = (IsAuthenticated,)
 
-	def post(self, request: Request, *args, **kwargs) -> Response:  # noqa: ANN002, ANN003, ARG002, D102, PLR6301
+	def post(self, request: Request, *args, **kwargs) -> Response:
 		action = request.data.get("action")
 		trade_id = request.data.get("trade_id")
 

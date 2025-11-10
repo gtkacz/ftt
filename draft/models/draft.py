@@ -33,7 +33,7 @@ class Draft(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		ordering = ("-year",)
 		unique_together = ("year", "is_league_draft")
 
@@ -84,7 +84,7 @@ class Draft(models.Model):
 			raise ValueError("Draft must have at least one draftable player")
 
 		with transaction.atomic():
-			from draft.models import DraftPick, Pick  # noqa: PLC0415
+			from draft.models import DraftPick, Pick
 
 			teams_order = self.generate_draft_order()
 			picks = Pick.objects.none() if self.is_league_draft else Pick.objects.filter(draft_year=self.year)
@@ -138,7 +138,7 @@ class Draft(models.Model):
 
 	def print_picks(self, *, recent_only: bool = False) -> None:
 		"""Prints the draft picks in order."""
-		from draft.models import DraftPick  # noqa: PLC0415
+		from draft.models import DraftPick
 
 		output = []
 		start_at_round = (

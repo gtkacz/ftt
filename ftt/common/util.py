@@ -26,6 +26,20 @@ def get_default_args(func: Callable) -> dict[str, Any]:
 	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
+def get_django_model_fields(model: type[Model], *, exclude_fields: list[str] = list()) -> list[str]:  # noqa: B006, C408
+	"""
+	Get the field names of a Django model.
+
+	Args:
+		model: The Django model class.
+		exclude_fields: A list of field names to exclude from the result.
+
+	Returns:
+		List[str]: A list of field names for the model.
+	"""
+	return [field.name for field in model._meta.fields if field.name not in exclude_fields]
+
+
 def django_obj_to_dict(obj: type[Model], *, exclude_fields: list[str] = list()) -> dict[str, Any]:  # noqa: B006, C408
 	"""
 	This function converts a Django model object to a dictionary.
@@ -39,7 +53,7 @@ def django_obj_to_dict(obj: type[Model], *, exclude_fields: list[str] = list()) 
 	"""
 	return model_to_dict(
 		obj,
-		fields=[field.name for field in obj._meta.fields if field.name not in exclude_fields],  # noqa: SLF001
+		fields=get_django_model_fields(obj, exclude_fields=exclude_fields),
 	)
 
 

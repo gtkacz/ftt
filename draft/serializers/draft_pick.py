@@ -18,4 +18,4 @@ class DraftPositionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = DraftPick
 		fields = "__all__"
-		read_only_fields = ["id", "pick_made_at"]
+		read_only_fields = ("id", "pick_made_at")

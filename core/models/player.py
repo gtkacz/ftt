@@ -31,7 +31,7 @@ class Player(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		ordering = ("last_name",)
 
 	def __str__(self) -> str:

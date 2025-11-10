@@ -11,7 +11,7 @@ from draft.serializers.draft import DraftSerializer
 from draft.serializers.draft_pick import DraftPositionSerializer
 from draft.serializers.draft_queue import DraftQueueSerializer, ReorderQueueSerializer
 from draft.serializers.pick import PickSerializer
-from ftt.common.util import django_obj_to_dict
+from ftt.common.util import django_obj_to_dict, get_django_model_fields
 
 from .models import Draft, DraftPick, Pick
 
@@ -19,13 +19,13 @@ from .models import Draft, DraftPick, Pick
 class PickListCreateView(generics.ListCreateAPIView):
 	queryset = Pick.objects.all()
 	serializer_class = PickSerializer
-	filterset_fields = "__all__"
+	filterset_fields = get_django_model_fields(Pick, exclude_fields=("protection_metadata",))
 
 
 class PickDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Pick.objects.all()
 	serializer_class = PickSerializer
-	filterset_fields = "__all__"
+	filterset_fields = get_django_model_fields(Pick, exclude_fields=("protection_metadata",))
 
 
 class DraftListCreateView(generics.ListCreateAPIView):

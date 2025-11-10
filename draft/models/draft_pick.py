@@ -42,7 +42,7 @@ class DraftPick(models.Model):
 		help_text="Contract associated with the drafted player",
 	)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		ordering = ("draft", "pick")
 		unique_together = ("draft", "pick")
 		constraints = (
@@ -54,7 +54,7 @@ class DraftPick(models.Model):
 		)
 
 	def __str__(self) -> str:
-		return f"{self.draft.year} Draft - Round {self.pick.round_number}, Pick {self.pick_number} ({self.pick.current_team.name})"  # pyright: ignore[reportAttributeAccessIssue]  # noqa: E501
+		return f"{self.draft.year} Draft - Round {self.pick.round_number}, Pick {self.pick_number} ({self.pick.current_team.name})"  # pyright: ignore[reportAttributeAccessIssue]
 
 	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
 		"""Override save to handle pick protection transfer."""
@@ -362,7 +362,7 @@ class DraftPick(models.Model):
 
 	def make_pick(self, player: Player | None, *, is_auto_pick: bool = False) -> Player:  # noqa: C901, PLR0912, PLR0915
 		"""Make a pick for the draft position."""  # noqa: DOC201, DOC501
-		from draft.models.draft_queue import DraftQueue  # noqa: PLC0415
+		from draft.models.draft_queue import DraftQueue
 
 		if self.time_left_to_pick() <= 0:
 			is_auto_pick = True
@@ -493,8 +493,8 @@ class DraftPick(models.Model):
 	@property
 	def is_part_of_trade(self) -> bool:
 		"""Check if the draft pick is currently part of a trade."""
-		from trade.models.trade import Trade  # noqa: PLC0415
-		from trade.models.trade_asset import TradeAsset  # noqa: PLC0415
+		from trade.models.trade import Trade
+		from trade.models.trade_asset import TradeAsset
 
 		assets = TradeAsset.objects.filter(draft_pick=self)
 		trades = Trade.objects.filter(assets__in=assets)

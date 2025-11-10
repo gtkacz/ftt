@@ -22,7 +22,7 @@ class DraftQueue(models.Model):
 		editable=True,
 	)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		unique_together = ("team", "draft")
 
 	def __str__(self) -> str:

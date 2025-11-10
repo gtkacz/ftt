@@ -8,61 +8,51 @@ paths:
   /api/auth/login/:
     post:
       operationId: auth_login_create
-      description: Authenticate user and return JWT tokens
-      summary: User login
       tags:
-      - Authentication
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                  description: Username
-                password:
-                  type: string
-                  description: Password
-              required:
-              - username
-              - password
-            examples:
-              LoginExample:
-                value:
-                  username: john_doe
-                  password: secure_password123
-                summary: Login Example
+      - auth
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Login successful
-        '401':
-          description: Invalid credentials
+          description: No response body
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
   /api/auth/register/:
     post:
       operationId: auth_register_create
-      description: Create a new user account with username, email, and password
-      summary: Register a new user
       tags:
-      - Authentication
+      - auth
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UserRegistrationRequest'
-            examples:
-              RegistrationExample:
-                value:
-                  username: john_doe
-                  email: john@example.com
-                  first_name: John
-                  last_name: Doe
-                  password: secure_password123
-                  password_confirm: secure_password123
-                summary: Registration Example
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/UserRegistrationRequest'
@@ -78,44 +68,84 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-              examples:
-                SuccessResponse:
-                  value:
-                    user:
-                      id: 1
-                      username: john_doe
-                      email: john@example.com
-                    refresh: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-                    access: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-                  summary: Success Response
-          description: User successfully created with JWT tokens
-        '400':
-          description: Validation errors
-  /api/draft-positions/:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/draft/positions/:
     get:
       operationId: draft_positions_list
-      description: Retrieve a paginated list of all draft positions
-      summary: List draft positions
       parameters:
+      - in: query
+        name: contract
+        schema:
+          type: integer
       - in: query
         name: draft
         schema:
           type: integer
-        description: Filter by draft ID
+      - in: query
+        name: is_auto_pick
+        schema:
+          type: boolean
+      - in: query
+        name: is_current
+        schema:
+          type: boolean
       - in: query
         name: is_pick_made
         schema:
           type: boolean
-        description: Filter by whether pick has been made
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
         schema:
           type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: overall_pick
+        schema:
+          type: integer
+      - in: query
+        name: pick
+        schema:
+          type: integer
+      - in: query
+        name: pick_made_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: pick_number
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: selected_player
+        schema:
+          type: integer
+      - in: query
+        name: started_at
+        schema:
+          type: string
+          format: date-time
       tags:
-      - Draft Positions
+      - draft
       security:
       - jwtAuth: []
       - {}
@@ -128,10 +158,8 @@ paths:
           description: ''
     post:
       operationId: draft_positions_create
-      description: Create a new draft position (usually done via generate-order endpoint)
-      summary: Create a draft position
       tags:
-      - Draft Positions
+      - draft
       requestBody:
         content:
           application/json:
@@ -146,7 +174,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -154,11 +181,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/DraftPosition'
           description: ''
-  /api/draft-positions/{id}/:
+  /api/draft/positions/{id}/:
     get:
       operationId: draft_positions_retrieve
-      description: Retrieve detailed information about a specific draft position
-      summary: Get draft position details
       parameters:
       - in: path
         name: id
@@ -166,7 +191,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Positions
+      - draft
       security:
       - jwtAuth: []
       - {}
@@ -179,8 +204,6 @@ paths:
           description: ''
     put:
       operationId: draft_positions_update
-      description: Update draft position information
-      summary: Update draft position
       parameters:
       - in: path
         name: id
@@ -188,7 +211,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Positions
+      - draft
       requestBody:
         content:
           application/json:
@@ -203,7 +226,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -213,8 +235,6 @@ paths:
           description: ''
     patch:
       operationId: draft_positions_partial_update
-      description: Partially update draft position information
-      summary: Partially update draft position
       parameters:
       - in: path
         name: id
@@ -222,7 +242,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Positions
+      - draft
       requestBody:
         content:
           application/json:
@@ -236,7 +256,6 @@ paths:
               $ref: '#/components/schemas/PatchedDraftPositionRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -246,8 +265,6 @@ paths:
           description: ''
     delete:
       operationId: draft_positions_destroy
-      description: Remove a draft position
-      summary: Delete draft position
       parameters:
       - in: path
         name: id
@@ -255,71 +272,101 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Positions
+      - draft
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
-  /api/draft-positions/{position_id}/pick/:
-    post:
-      operationId: draft_positions_pick_create
-      description: Select a player for a specific draft position during live draft
-      summary: Make a draft pick
-      parameters:
-      - in: path
-        name: position_id
-        schema:
-          type: integer
-        description: Draft position ID to make pick for
-        required: true
-      tags:
-      - Draft Positions
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                player_id:
-                  type: integer
-                  description: ID of the player to draft
-              required:
-              - player_id
-            examples:
-              MakePickExample:
-                value:
-                  player_id: 15
-                summary: Make Pick Example
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DraftPosition'
-          description: Pick made successfully
-        '400':
-          description: Invalid request (pick already made, player unavailable, etc.)
-        '404':
-          description: Draft position or player not found
   /api/drafts/:
     get:
       operationId: drafts_list
-      description: Retrieve a paginated list of all draft events
-      summary: List drafts
       parameters:
-      - name: page
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: draftable_players
+        schema:
+          type: array
+          items:
+            type: integer
+        explode: true
+        style: form
+      - in: query
+        name: is_completed
+        schema:
+          type: boolean
+      - in: query
+        name: is_league_draft
+        schema:
+          type: boolean
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: pick_hour_lower_bound
+        schema:
+          type: integer
+      - in: query
+        name: pick_hour_upper_bound
+        schema:
+          type: integer
+      - in: query
+        name: rounds
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: starts_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: teams
+        schema:
+          type: array
+          items:
+            type: integer
+        explode: true
+        style: form
+      - in: query
+        name: time_limit_per_pick
+        schema:
+          type: integer
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: year
         schema:
           type: integer
       tags:
-      - Drafts
+      - drafts
       security:
       - jwtAuth: []
       - {}
@@ -332,10 +379,8 @@ paths:
           description: ''
     post:
       operationId: drafts_create
-      description: Create a new draft event for a specific year
-      summary: Create a draft
       tags:
-      - Drafts
+      - drafts
       requestBody:
         content:
           application/json:
@@ -350,7 +395,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -361,86 +405,371 @@ paths:
   /api/drafts/{draft_id}/board/:
     get:
       operationId: drafts_board_retrieve
-      description: Retrieve the current state of the draft board with all positions
-        and next pick
-      summary: Get draft board
+      description: Get the current state of the draft board
       parameters:
       - in: path
         name: draft_id
         schema:
           type: integer
-        description: Draft ID to get board for
         required: true
       tags:
-      - Drafts
+      - drafts
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Draft board retrieved successfully
-        '404':
-          description: Draft not found
+          description: No response body
   /api/drafts/{draft_id}/generate-order/:
     post:
       operationId: drafts_generate_order_create
-      description: Generate the complete draft order for a draft event, supporting
-        both standard and snake draft formats
-      summary: Generate draft order
+      description: Generate draft order for a draft based on team standings or custom
+        order
       parameters:
       - in: path
         name: draft_id
         schema:
           type: integer
-        description: Draft ID to generate order for
         required: true
       tags:
-      - Drafts
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/drafts/{draft}/queues/:
+    get:
+      operationId: drafts_queues_list
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDraftQueueList'
+          description: ''
+    post:
+      operationId: drafts_queues_create
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                teams_order:
-                  type: array
-                  items:
-                    type: integer
-                  description: Array of team IDs in draft order (worst to best record
-                    typically)
-                rounds:
-                  type: integer
-                  description: Number of rounds in the draft
-                  default: 1
-              required:
-              - teams_order
-            examples:
-              GenerateOrderExample:
-                value:
-                  teams_order:
-                  - 3
-                  - 1
-                  - 5
-                  - 2
-                  - 4
-                  rounds: 2
-                summary: Generate Order Example
+              $ref: '#/components/schemas/DraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    put:
+      operationId: drafts_queues_update
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    patch:
+      operationId: drafts_queues_partial_update
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    delete:
+      operationId: drafts_queues_destroy
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/drafts/{draft}/queues/{id}/:
+    get:
+      operationId: drafts_queues_list_2
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - drafts
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Draft order generated successfully
-        '400':
-          description: Invalid request data
-        '404':
-          description: Draft not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDraftQueueList'
+          description: ''
+    post:
+      operationId: drafts_queues_create_2
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    put:
+      operationId: drafts_queues_update_2
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftQueueRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    patch:
+      operationId: drafts_queues_partial_update_2
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftQueueRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftQueue'
+          description: ''
+    delete:
+      operationId: drafts_queues_destroy_2
+      parameters:
+      - in: path
+        name: draft
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/drafts/{id}/:
     get:
       operationId: drafts_retrieve
-      description: Retrieve detailed information about a specific draft including
-        players and positions
-      summary: Get draft details
       parameters:
       - in: path
         name: id
@@ -448,7 +777,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Drafts
+      - drafts
       security:
       - jwtAuth: []
       - {}
@@ -461,8 +790,6 @@ paths:
           description: ''
     put:
       operationId: drafts_update
-      description: Update draft information
-      summary: Update draft
       parameters:
       - in: path
         name: id
@@ -470,7 +797,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Drafts
+      - drafts
       requestBody:
         content:
           application/json:
@@ -485,7 +812,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -495,8 +821,6 @@ paths:
           description: ''
     patch:
       operationId: drafts_partial_update
-      description: Partially update draft information
-      summary: Partially update draft
       parameters:
       - in: path
         name: id
@@ -504,7 +828,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Drafts
+      - drafts
       requestBody:
         content:
           application/json:
@@ -518,7 +842,6 @@ paths:
               $ref: '#/components/schemas/PatchedDraftRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -528,8 +851,6 @@ paths:
           description: ''
     delete:
       operationId: drafts_destroy
-      description: Delete a draft event
-      summary: Delete draft
       parameters:
       - in: path
         name: id
@@ -537,37 +858,469 @@ paths:
           type: integer
         required: true
       tags:
-      - Drafts
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/drafts/{id}/lottery/start/:
+    post:
+      operationId: drafts_lottery_start_create
+      description: |-
+        Start the lottery for a draft with the given primary key (pk).
+        Only authenticated users can access this endpoint.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/drafts/{id}/picks/:
+    get:
+      operationId: drafts_picks_retrieve
+      description: |-
+        Get the lottery results for a draft with the given primary key (pk).
+        Only authenticated users can access this endpoint.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
       security:
       - jwtAuth: []
       - {}
+      responses:
+        '200':
+          description: No response body
+  /api/drafts/make-pick/{id}/:
+    post:
+      operationId: drafts_make_pick_create
+      description: |-
+        Make a pick for the draft with the given primary key (pk).
+        Only authenticated users can access this endpoint.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/drafts/queues/{id}/reorder/:
+    post:
+      operationId: drafts_queues_reorder_create
+      description: Reorder the entire draft queue
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - drafts
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/healthcheck/:
+    get:
+      operationId: healthcheck_retrieve
+      description: |-
+        Health check endpoint for the API.
+
+        Returns:
+                Response: A response indicating the server is up.
+      tags:
+      - healthcheck
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      parameters:
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: is_read
+        schema:
+          type: boolean
+      - in: query
+        name: level
+        schema:
+          type: string
+          x-spec-enum-id: 8d47f895ba1da870
+          enum:
+          - error
+          - info
+          - warning
+        description: |-
+          Notification level
+
+          * `info` - Info
+          * `warning` - Warning
+          * `error` - Error
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: priority
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    put:
+      operationId: notifications_update
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: notifications_partial_update
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: notifications_destroy
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/{id}/:
+    get:
+      operationId: notifications_list_2
+      parameters:
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: is_read
+        schema:
+          type: boolean
+      - in: query
+        name: level
+        schema:
+          type: string
+          x-spec-enum-id: 8d47f895ba1da870
+          enum:
+          - error
+          - info
+          - warning
+        description: |-
+          Notification level
+
+          * `info` - Info
+          * `warning` - Warning
+          * `error` - Error
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: priority
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    put:
+      operationId: notifications_update_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: notifications_partial_update_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: notifications_destroy_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
   /api/picks/:
     get:
       operationId: picks_list
-      description: Retrieve a paginated list of all draft picks (draft capital)
-      summary: List draft picks
       parameters:
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
       - in: query
         name: current_team
         schema:
           type: integer
-        description: Filter by current team owner
       - in: query
         name: draft_year
         schema:
           type: integer
-        description: Filter by draft year
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
+      - in: query
+        name: id
         schema:
           type: integer
+      - in: query
+        name: is_from_league_draft
+        schema:
+          type: boolean
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: original_team
+        schema:
+          type: integer
+      - in: query
+        name: protection
+        schema:
+          type: string
+          x-spec-enum-id: e6a472b3885fcdfc
+          enum:
+          - swap_best
+          - swap_worst
+          - top_x
+          - unprotected
+        description: |-
+          * `unprotected` - UNPROTECTED
+          * `top_x` - TOP_X
+          * `swap_best` - SWAP_BEST
+          * `swap_worst` - SWAP_WORST
+      - in: query
+        name: protection_conveyed
+        schema:
+          type: boolean
+      - in: query
+        name: round_number
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date-time
       tags:
-      - Draft Capital
+      - picks
       security:
       - jwtAuth: []
       - {}
@@ -580,10 +1333,8 @@ paths:
           description: ''
     post:
       operationId: picks_create
-      description: Create a new draft pick asset
-      summary: Create a draft pick
       tags:
-      - Draft Capital
+      - picks
       requestBody:
         content:
           application/json:
@@ -598,7 +1349,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -609,8 +1359,6 @@ paths:
   /api/picks/{id}/:
     get:
       operationId: picks_retrieve
-      description: Retrieve detailed information about a specific draft pick
-      summary: Get draft pick details
       parameters:
       - in: path
         name: id
@@ -618,7 +1366,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Capital
+      - picks
       security:
       - jwtAuth: []
       - {}
@@ -631,8 +1379,6 @@ paths:
           description: ''
     put:
       operationId: picks_update
-      description: Update draft pick information (used for trades)
-      summary: Update draft pick
       parameters:
       - in: path
         name: id
@@ -640,7 +1386,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Capital
+      - picks
       requestBody:
         content:
           application/json:
@@ -655,7 +1401,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -665,8 +1410,6 @@ paths:
           description: ''
     patch:
       operationId: picks_partial_update
-      description: Partially update draft pick information
-      summary: Partially update draft pick
       parameters:
       - in: path
         name: id
@@ -674,7 +1417,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Capital
+      - picks
       requestBody:
         content:
           application/json:
@@ -688,7 +1431,6 @@ paths:
               $ref: '#/components/schemas/PatchedPickRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -698,8 +1440,6 @@ paths:
           description: ''
     delete:
       operationId: picks_destroy
-      description: Remove a draft pick
-      summary: Delete draft pick
       parameters:
       - in: path
         name: id
@@ -707,42 +1447,106 @@ paths:
           type: integer
         required: true
       tags:
-      - Draft Capital
+      - picks
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
   /api/players/:
     get:
       operationId: players_list
-      description: Retrieve a paginated list of all players in the league
-      summary: List all players
       parameters:
       - in: query
-        name: is_rfa
-        schema:
-          type: boolean
-        description: Filter by RFA status
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - in: query
-        name: position
+        name: created_at
         schema:
           type: string
-        description: Filter by position (G, F, C)
+          format: date-time
       - in: query
-        name: team
+        name: first_name
+        schema:
+          type: string
+      - in: query
+        name: id
         schema:
           type: integer
-        description: Filter by team ID
+      - in: query
+        name: is_ir
+        schema:
+          type: boolean
+      - in: query
+        name: last_name
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: nba_id
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: primary_position
+        schema:
+          type: string
+          x-spec-enum-id: 74aabab8c23db26b
+          enum:
+          - C
+          - F
+          - G
+        description: |-
+          * `G` - Guard
+          * `F` - Forward
+          * `C` - Center
+      - in: query
+        name: real_team
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: secondary_position
+        schema:
+          type: string
+          x-spec-enum-id: 74aabab8c23db26b
+          enum:
+          - C
+          - F
+          - G
+        description: |-
+          * `G` - Guard
+          * `F` - Forward
+          * `C` - Center
+      - in: query
+        name: slug
+        schema:
+          type: string
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date-time
       tags:
-      - Players
+      - players
       security:
       - jwtAuth: []
       - {}
@@ -751,41 +1555,36 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedPlayerList'
+                $ref: '#/components/schemas/PaginatedSimplePlayerList'
           description: ''
     post:
       operationId: players_create
-      description: Add a new player to the league
-      summary: Create a new player
       tags:
-      - Players
+      - players
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlayerRequest'
+              $ref: '#/components/schemas/SimplePlayerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PlayerRequest'
+              $ref: '#/components/schemas/SimplePlayerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PlayerRequest'
+              $ref: '#/components/schemas/SimplePlayerRequest'
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Player'
+                $ref: '#/components/schemas/SimplePlayer'
           description: ''
   /api/players/{id}/:
     get:
       operationId: players_retrieve
-      description: Retrieve detailed information about a specific player
-      summary: Get player details
       parameters:
       - in: path
         name: id
@@ -793,7 +1592,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Players
+      - players
       security:
       - jwtAuth: []
       - {}
@@ -806,8 +1605,6 @@ paths:
           description: ''
     put:
       operationId: players_update
-      description: Update player information (full update)
-      summary: Update player
       parameters:
       - in: path
         name: id
@@ -815,7 +1612,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Players
+      - players
       requestBody:
         content:
           application/json:
@@ -830,7 +1627,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -840,8 +1636,6 @@ paths:
           description: ''
     patch:
       operationId: players_partial_update
-      description: Partially update player information
-      summary: Partially update player
       parameters:
       - in: path
         name: id
@@ -849,7 +1643,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Players
+      - players
       requestBody:
         content:
           application/json:
@@ -863,7 +1657,6 @@ paths:
               $ref: '#/components/schemas/PatchedPlayerRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -873,8 +1666,6 @@ paths:
           description: ''
     delete:
       operationId: players_destroy
-      description: Remove a player from the league
-      summary: Delete player
       parameters:
       - in: path
         name: id
@@ -882,28 +1673,80 @@ paths:
           type: integer
         required: true
       tags:
-      - Players
+      - players
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/settings/:
+    get:
+      operationId: settings_retrieve
+      description: |-
+        Endpoint to retrieve league settings.
+
+        Returns:
+                Response: A response containing the league settings.
+      tags:
+      - settings
       security:
       - jwtAuth: []
       - {}
       responses:
-        '204':
+        '200':
           description: No response body
   /api/teams/:
     get:
       operationId: teams_list
-      description: Retrieve a paginated list of all teams with their basic info and
-        stats
-      summary: List all teams
       parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: id
         schema:
           type: integer
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date-time
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
       - {}
@@ -916,10 +1759,8 @@ paths:
           description: ''
     post:
       operationId: teams_create
-      description: Create a new team for a user
-      summary: Create a new team
       tags:
-      - Teams
+      - teams
       requestBody:
         content:
           application/json:
@@ -934,7 +1775,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -945,8 +1785,6 @@ paths:
   /api/teams/{id}/:
     get:
       operationId: teams_retrieve
-      description: Retrieve detailed information about a specific team
-      summary: Get team details
       parameters:
       - in: path
         name: id
@@ -954,7 +1792,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
       - {}
@@ -967,8 +1805,6 @@ paths:
           description: ''
     put:
       operationId: teams_update
-      description: Update team information (full update)
-      summary: Update team
       parameters:
       - in: path
         name: id
@@ -976,7 +1812,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Teams
+      - teams
       requestBody:
         content:
           application/json:
@@ -991,7 +1827,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1001,8 +1836,6 @@ paths:
           description: ''
     patch:
       operationId: teams_partial_update
-      description: Partially update team information
-      summary: Partially update team
       parameters:
       - in: path
         name: id
@@ -1010,7 +1843,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Teams
+      - teams
       requestBody:
         content:
           application/json:
@@ -1024,7 +1857,6 @@ paths:
               $ref: '#/components/schemas/PatchedTeamRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1034,8 +1866,6 @@ paths:
           description: ''
     delete:
       operationId: teams_destroy
-      description: Delete a team
-      summary: Delete team
       parameters:
       - in: path
         name: id
@@ -1043,108 +1873,350 @@ paths:
           type: integer
         required: true
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
   /api/teams/{id}/picks/:
     get:
       operationId: teams_picks_retrieve
-      description: Retrieve all draft picks currently owned by a team
-      summary: Get team draft picks
       parameters:
       - in: path
         name: id
         schema:
           type: integer
         required: true
-      - in: path
-        name: pk
-        schema:
-          type: integer
-        description: Team ID
-        required: true
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Team draft picks retrieved
-        '404':
-          description: Team not found
+          description: No response body
   /api/teams/{id}/players/:
     get:
       operationId: teams_players_retrieve
-      description: Retrieve all players on a team along with the total player count
-      summary: Get team players
       parameters:
       - in: path
         name: id
         schema:
           type: integer
         required: true
-      - in: path
-        name: pk
-        schema:
-          type: integer
-        description: Team ID
-        required: true
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Team players retrieved
-        '404':
-          description: Team not found
+          description: No response body
   /api/teams/{id}/salary/:
     get:
       operationId: teams_salary_retrieve
-      description: Calculate and return the total salary of all players on a team
-      summary: Get team total salary
       parameters:
       - in: path
         name: id
         schema:
           type: integer
         required: true
-      - in: path
-        name: pk
-        schema:
-          type: integer
-        description: Team ID
-        required: true
       tags:
-      - Teams
+      - teams
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
-          description: Total salary calculated
-        '404':
-          description: Team not found
+          description: No response body
+  /api/trades/:
+    get:
+      operationId: trades_list
+      description: A viewset for viewing and editing trade instances.
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - trades
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTradeList'
+          description: ''
+    post:
+      operationId: trades_create
+      description: Override create to create the underlying trade assets.
+      tags:
+      - trades
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+          description: ''
+  /api/trades/{id}/:
+    get:
+      operationId: trades_retrieve
+      description: A viewset for viewing and editing trade instances.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - trades
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+          description: ''
+    put:
+      operationId: trades_update
+      description: A viewset for viewing and editing trade instances.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - trades
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+          description: ''
+    patch:
+      operationId: trades_partial_update
+      description: A viewset for viewing and editing trade instances.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - trades
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTradeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTradeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTradeRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trade'
+          description: ''
+    delete:
+      operationId: trades_destroy
+      description: A viewset for viewing and editing trade instances.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - trades
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/trades/actions/:
+    post:
+      operationId: trades_actions_create
+      description: View to handle trade actions like accept, reject, and counteroffer.
+      tags:
+      - trades
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/users/:
     get:
       operationId: users_list
-      description: Retrieve a paginated list of all users in the system
-      summary: List all users
       parameters:
-      - name: page
+      - in: query
+        name: created_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: date_joined
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: email
+        schema:
+          type: string
+      - in: query
+        name: first_name
+        schema:
+          type: string
+      - in: query
+        name: groups
+        schema:
+          type: array
+          items:
+            type: integer
+        explode: true
+        style: form
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: is_approved
+        schema:
+          type: boolean
+      - in: query
+        name: is_staff
+        schema:
+          type: boolean
+      - in: query
+        name: is_superuser
+        schema:
+          type: boolean
+      - in: query
+        name: last_login
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_name
+        schema:
+          type: string
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
         schema:
           type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: password
+        schema:
+          type: string
+      - in: query
+        name: phone_country_code
+        schema:
+          type: string
+      - in: query
+        name: phone_number
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: user_permissions
+        schema:
+          type: array
+          items:
+            type: integer
+        explode: true
+        style: form
+      - in: query
+        name: username
+        schema:
+          type: string
       tags:
-      - Users
+      - users
       security:
       - jwtAuth: []
       - {}
@@ -1157,10 +2229,8 @@ paths:
           description: ''
     post:
       operationId: users_create
-      description: Create a new user (admin only)
-      summary: Create a new user
       tags:
-      - Users
+      - users
       requestBody:
         content:
           application/json:
@@ -1175,7 +2245,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -1186,8 +2255,6 @@ paths:
   /api/users/{id}/:
     get:
       operationId: users_retrieve
-      description: Retrieve detailed information about a specific user
-      summary: Get user details
       parameters:
       - in: path
         name: id
@@ -1195,7 +2262,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Users
+      - users
       security:
       - jwtAuth: []
       - {}
@@ -1208,8 +2275,6 @@ paths:
           description: ''
     put:
       operationId: users_update
-      description: Update user information (full update)
-      summary: Update user
       parameters:
       - in: path
         name: id
@@ -1217,7 +2282,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Users
+      - users
       requestBody:
         content:
           application/json:
@@ -1232,7 +2297,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1242,8 +2306,6 @@ paths:
           description: ''
     patch:
       operationId: users_partial_update
-      description: Partially update user information
-      summary: Partially update user
       parameters:
       - in: path
         name: id
@@ -1251,7 +2313,7 @@ paths:
           type: integer
         required: true
       tags:
-      - Users
+      - users
       requestBody:
         content:
           application/json:
@@ -1265,7 +2327,6 @@ paths:
               $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1275,8 +2336,6 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
-      description: Delete a user account
-      summary: Delete user
       parameters:
       - in: path
         name: id
@@ -1284,10 +2343,9 @@ paths:
           type: integer
         required: true
       tags:
-      - Users
+      - users
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -1299,16 +2357,10 @@ components:
         id:
           type: integer
           readOnly: true
-        year:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          description: Draft year (must be unique)
         draftable_players:
           type: array
           items:
-            $ref: '#/components/schemas/Player'
+            $ref: '#/components/schemas/SimplePlayer'
           readOnly: true
           description: List of all players available in this draft
         draft_positions:
@@ -1317,22 +2369,64 @@ components:
             $ref: '#/components/schemas/DraftPosition'
           readOnly: true
           description: Complete draft order and pick status
+        year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
         is_completed:
           type: boolean
-          description: Whether this draft has been completed
-        is_snake_draft:
+        is_league_draft:
           type: boolean
-          description: Whether this is a snake draft (reverses order each round)
+          default: false
+        rounds:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Number of rounds in the draft
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Start time of the draft
+        time_limit_per_pick:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Time limit in minutes for each pick
+        pick_hour_lower_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Lower bound for the hour of the day when picks can be made
+        pick_hour_upper_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Upper bound for the hour of the day when picks can be made
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Date and time when draft was created
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        teams:
+          type: array
+          items:
+            type: integer
+          description: Teams participating in the draft
       required:
       - created_at
       - draft_positions
       - draftable_players
       - id
+      - updated_at
       - year
     DraftPosition:
       type: object
@@ -1340,19 +2434,14 @@ components:
         id:
           type: integer
           readOnly: true
-        team:
-          type: integer
-          description: Team ID making this pick
         team_name:
           type: string
           readOnly: true
           description: Name of the team making this pick
-        round_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          description: Round number (1, 2, etc.)
+        selected_player_name:
+          type: string
+          readOnly: true
+          description: Name of the selected player (if pick has been made)
         pick_number:
           type: integer
           maximum: 9223372036854775807
@@ -1364,45 +2453,46 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Overall pick number in the entire draft
-        selected_player:
-          type: integer
-          nullable: true
-          description: Player ID selected with this pick (if made)
-        selected_player_name:
+          description: Overall pick number in draft
+        started_at:
           type: string
-          readOnly: true
-          description: Name of the selected player (if pick has been made)
+          format: date-time
+          nullable: true
+          description: Time when the pick was started
         is_pick_made:
           type: boolean
-          description: Whether this pick has been made yet
         pick_made_at:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-          description: Date and time when pick was made
+        is_current:
+          type: boolean
+        is_auto_pick:
+          type: boolean
+        draft:
+          type: integer
+        pick:
+          type: integer
+          nullable: true
+        selected_player:
+          type: integer
+          nullable: true
+        contract:
+          type: integer
+          nullable: true
+          description: Contract associated with the drafted player
       required:
+      - draft
       - id
       - overall_pick
       - pick_made_at
       - pick_number
-      - round_number
       - selected_player_name
-      - team
       - team_name
     DraftPositionRequest:
       type: object
       properties:
-        team:
-          type: integer
-          description: Team ID making this pick
-        round_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          description: Round number (1, 2, etc.)
         pick_number:
           type: integer
           maximum: 9223372036854775807
@@ -1414,18 +2504,86 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Overall pick number in the entire draft
+          description: Overall pick number in draft
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time when the pick was started
+        is_pick_made:
+          type: boolean
+        is_current:
+          type: boolean
+        is_auto_pick:
+          type: boolean
+        draft:
+          type: integer
+        pick:
+          type: integer
+          nullable: true
         selected_player:
           type: integer
           nullable: true
-          description: Player ID selected with this pick (if made)
-        is_pick_made:
-          type: boolean
-          description: Whether this pick has been made yet
+        contract:
+          type: integer
+          nullable: true
+          description: Contract associated with the drafted player
       required:
+      - draft
       - overall_pick
       - pick_number
-      - round_number
+    DraftQueue:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        queue_items:
+          type: string
+          readOnly: true
+          description: List of players in the draft queue
+        team_name:
+          type: string
+          readOnly: true
+        draft_year:
+          type: integer
+          readOnly: true
+        autopick_enabled:
+          type: boolean
+          description: Enable auto-pick from queue
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        team:
+          type: integer
+        draft:
+          type: integer
+      required:
+      - created_at
+      - draft
+      - draft_year
+      - id
+      - queue_items
+      - team
+      - team_name
+      - updated_at
+    DraftQueueRequest:
+      type: object
+      properties:
+        autopick_enabled:
+          type: boolean
+          description: Enable auto-pick from queue
+        team:
+          type: integer
+        draft:
+          type: integer
+      required:
+      - draft
       - team
     DraftRequest:
       type: object
@@ -1435,15 +2593,132 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Draft year (must be unique)
         is_completed:
           type: boolean
-          description: Whether this draft has been completed
-        is_snake_draft:
+        is_league_draft:
           type: boolean
-          description: Whether this is a snake draft (reverses order each round)
+          default: false
+        rounds:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Number of rounds in the draft
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Start time of the draft
+        time_limit_per_pick:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Time limit in minutes for each pick
+        pick_hour_lower_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Lower bound for the hour of the day when picks can be made
+        pick_hour_upper_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Upper bound for the hour of the day when picks can be made
+        teams:
+          type: array
+          items:
+            type: integer
+          description: Teams participating in the draft
       required:
       - year
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        message:
+          type: string
+          maxLength: 255
+        is_read:
+          type: boolean
+        priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Priority of the notification, higher number means higher priority
+        level:
+          enum:
+          - info
+          - warning
+          - error
+          type: string
+          x-spec-enum-id: 8d47f895ba1da870
+          description: |-
+            Notification level
+
+            * `info` - Info
+            * `warning` - Warning
+            * `error` - Error
+        redirect_to:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+          nullable: true
+      required:
+      - created_at
+      - id
+      - message
+      - updated_at
+    NotificationRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 255
+        is_read:
+          type: boolean
+        priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Priority of the notification, higher number means higher priority
+        level:
+          enum:
+          - info
+          - warning
+          - error
+          type: string
+          x-spec-enum-id: 8d47f895ba1da870
+          description: |-
+            Notification level
+
+            * `info` - Info
+            * `warning` - Warning
+            * `error` - Error
+        redirect_to:
+          type: string
+          maxLength: 255
+        user:
+          type: integer
+          nullable: true
+      required:
+      - message
     PaginatedDraftList:
       type: object
       required:
@@ -1457,12 +2732,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -1480,16 +2755,62 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/DraftPosition'
+    PaginatedDraftQueueList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DraftQueue'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
     PaginatedPickList:
       type: object
       required:
@@ -1503,17 +2824,17 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/Pick'
-    PaginatedPlayerList:
+    PaginatedSimplePlayerList:
       type: object
       required:
       - count
@@ -1526,16 +2847,16 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Player'
+            $ref: '#/components/schemas/SimplePlayer'
     PaginatedTeamList:
       type: object
       required:
@@ -1549,16 +2870,39 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/Team'
+    PaginatedTradeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trade'
     PaginatedUserList:
       type: object
       required:
@@ -1572,12 +2916,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -1585,15 +2929,6 @@ components:
     PatchedDraftPositionRequest:
       type: object
       properties:
-        team:
-          type: integer
-          description: Team ID making this pick
-        round_number:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          description: Round number (1, 2, etc.)
         pick_number:
           type: integer
           maximum: 9223372036854775807
@@ -1605,14 +2940,40 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Overall pick number in the entire draft
+          description: Overall pick number in draft
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time when the pick was started
+        is_pick_made:
+          type: boolean
+        is_current:
+          type: boolean
+        is_auto_pick:
+          type: boolean
+        draft:
+          type: integer
+        pick:
+          type: integer
+          nullable: true
         selected_player:
           type: integer
           nullable: true
-          description: Player ID selected with this pick (if made)
-        is_pick_made:
+        contract:
+          type: integer
+          nullable: true
+          description: Contract associated with the drafted player
+    PatchedDraftQueueRequest:
+      type: object
+      properties:
+        autopick_enabled:
           type: boolean
-          description: Whether this pick has been made yet
+          description: Enable auto-pick from queue
+        team:
+          type: integer
+        draft:
+          type: integer
     PatchedDraftRequest:
       type: object
       properties:
@@ -1621,150 +2982,266 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Draft year (must be unique)
         is_completed:
           type: boolean
-          description: Whether this draft has been completed
-        is_snake_draft:
+        is_league_draft:
           type: boolean
-          description: Whether this is a snake draft (reverses order each round)
+          default: false
+        rounds:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Number of rounds in the draft
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Start time of the draft
+        time_limit_per_pick:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Time limit in minutes for each pick
+        pick_hour_lower_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Lower bound for the hour of the day when picks can be made
+        pick_hour_upper_bound:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Upper bound for the hour of the day when picks can be made
+        teams:
+          type: array
+          items:
+            type: integer
+          description: Teams participating in the draft
+    PatchedNotificationRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 255
+        is_read:
+          type: boolean
+        priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Priority of the notification, higher number means higher priority
+        level:
+          enum:
+          - info
+          - warning
+          - error
+          type: string
+          x-spec-enum-id: 8d47f895ba1da870
+          description: |-
+            Notification level
+
+            * `info` - Info
+            * `warning` - Warning
+            * `error` - Error
+        redirect_to:
+          type: string
+          maxLength: 255
+        user:
+          type: integer
+          nullable: true
     PatchedPickRequest:
       type: object
       properties:
-        original_team:
-          type: integer
-          description: Team ID that originally owned this pick
-        current_team:
-          type: integer
-          description: Team ID that currently owns this pick
         draft_year:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Year this pick can be used in the draft
         round_number:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Round number of this pick (1, 2, etc.)
-        protections:
+        is_from_league_draft:
+          type: boolean
+          description: Indicates if this pick is from a league draft
+        protection:
+          enum:
+          - unprotected
+          - top_x
+          - swap_best
+          - swap_worst
           type: string
+          description: |-
+            * `unprotected` - UNPROTECTED
+            * `top_x` - TOP_X
+            * `swap_best` - SWAP_BEST
+            * `swap_worst` - SWAP_WORST
+          x-spec-enum-id: e6a472b3885fcdfc
+        protection_metadata:
           nullable: true
-          description: Optional description of pick protections (e.g., "Top 3 protected")
+          description: Additional data related to the pick's protection (e.g., value
+            of X for TOP_X protection)
+        protection_conveyed:
+          type: boolean
+          description: Indicates if the pick's protection has been conveyed to the
+            receiving team
+        original_team:
+          type: integer
+        current_team:
+          type: integer
     PatchedPlayerRequest:
       type: object
       properties:
-        name:
+        first_name:
           type: string
           minLength: 1
-          description: Player full name
           maxLength: 100
-        team:
-          type: integer
-          nullable: true
-          description: Team ID this player belongs to (can be null for free agents)
-        salary:
+        last_name:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          description: Player annual salary in dollars
-        contract_duration:
-          type: integer
-          maximum: 10
-          minimum: 1
-          description: Contract length in years (1-10)
+          minLength: 1
+          maxLength: 100
         primary_position:
           enum:
           - G
           - F
           - C
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
           description: |-
-            Primary position: G (Guard), F (Forward), or C (Center)
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
         secondary_position:
           enum:
           - G
           - F
           - C
           - ''
-          - null
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
-          nullable: true
           description: |-
-            Secondary position (optional): G, F, or C
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
-        is_rfa:
+          x-spec-enum-id: 74aabab8c23db26b
+        nba_id:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_ir:
           type: boolean
-          description: Whether player is a Restricted Free Agent
+          description: Injury Reserve
+        slug:
+          type: string
+          nullable: true
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        metadata:
+          nullable: true
     PatchedTeamRequest:
       type: object
       properties:
         name:
           type: string
           minLength: 1
-          description: Team name
           maxLength: 100
         owner:
           type: integer
-          description: User ID of the team owner
-        avatar:
-          type: string
-          format: binary
+    PatchedTradeRequest:
+      type: object
+      properties:
+        sender:
+          $ref: '#/components/schemas/SimpleTeamRequest'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleTeamRequest'
+        done:
+          type: boolean
+        parent:
+          type: integer
           nullable: true
-          description: Team avatar image (optional)
     PatchedUserRequest:
       type: object
       properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
         username:
           type: string
           minLength: 1
-          description: Unique username for the user
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
           maxLength: 150
         email:
           type: string
           format: email
           title: Email address
-          description: User email address
           maxLength: 254
-        first_name:
-          type: string
-          description: User first name
-          maxLength: 150
-        last_name:
-          type: string
-          description: User last name
-          maxLength: 150
-        is_admin:
+        is_staff:
           type: boolean
-          description: Whether the user has admin privileges
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_approved:
+          type: boolean
+          description: User is approved to participate in the league
+        phone_country_code:
+          type: string
+          description: User's cellphone country code
+          maxLength: 8
+        phone_number:
+          type: string
+          description: User's cellphone number
+          maxLength: 31
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
     Pick:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        original_team:
-          type: integer
-          description: Team ID that originally owned this pick
         original_team_name:
           type: string
           readOnly: true
           description: Name of the team that originally owned this pick
-        current_team:
-          type: integer
-          description: Team ID that currently owns this pick
         current_team_name:
           type: string
           readOnly: true
@@ -1774,22 +3251,47 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Year this pick can be used in the draft
         round_number:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Round number of this pick (1, 2, etc.)
-        protections:
+        is_from_league_draft:
+          type: boolean
+          description: Indicates if this pick is from a league draft
+        protection:
+          enum:
+          - unprotected
+          - top_x
+          - swap_best
+          - swap_worst
           type: string
+          description: |-
+            * `unprotected` - UNPROTECTED
+            * `top_x` - TOP_X
+            * `swap_best` - SWAP_BEST
+            * `swap_worst` - SWAP_WORST
+          x-spec-enum-id: e6a472b3885fcdfc
+        protection_metadata:
           nullable: true
-          description: Optional description of pick protections (e.g., "Top 3 protected")
+          description: Additional data related to the pick's protection (e.g., value
+            of X for TOP_X protection)
+        protection_conveyed:
+          type: boolean
+          description: Indicates if the pick's protection has been conveyed to the
+            receiving team
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Date and time when pick was created
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        original_team:
+          type: integer
+        current_team:
+          type: integer
       required:
       - created_at
       - current_team
@@ -1799,31 +3301,48 @@ components:
       - original_team
       - original_team_name
       - round_number
+      - updated_at
     PickRequest:
       type: object
       properties:
-        original_team:
-          type: integer
-          description: Team ID that originally owned this pick
-        current_team:
-          type: integer
-          description: Team ID that currently owns this pick
         draft_year:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Year this pick can be used in the draft
         round_number:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-          description: Round number of this pick (1, 2, etc.)
-        protections:
+        is_from_league_draft:
+          type: boolean
+          description: Indicates if this pick is from a league draft
+        protection:
+          enum:
+          - unprotected
+          - top_x
+          - swap_best
+          - swap_worst
           type: string
+          description: |-
+            * `unprotected` - UNPROTECTED
+            * `top_x` - TOP_X
+            * `swap_best` - SWAP_BEST
+            * `swap_worst` - SWAP_WORST
+          x-spec-enum-id: e6a472b3885fcdfc
+        protection_metadata:
           nullable: true
-          description: Optional description of pick protections (e.g., "Top 3 protected")
+          description: Additional data related to the pick's protection (e.g., value
+            of X for TOP_X protection)
+        protection_conveyed:
+          type: boolean
+          description: Indicates if the pick's protection has been conveyed to the
+            receiving team
+        original_team:
+          type: integer
+        current_team:
+          type: integer
       required:
       - current_team
       - draft_year
@@ -1835,168 +3354,351 @@ components:
         id:
           type: integer
           readOnly: true
-        name:
-          type: string
-          description: Player full name
-          maxLength: 100
-        team:
-          type: integer
-          nullable: true
-          description: Team ID this player belongs to (can be null for free agents)
         team_name:
           type: string
           readOnly: true
           description: Name of the team this player belongs to
-        salary:
+        photo:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          description: Player annual salary in dollars
-        contract_duration:
-          type: integer
-          maximum: 10
-          minimum: 1
-          description: Contract length in years (1-10)
+          readOnly: true
+          description: URL to the player photo, if available
+        real_team:
+          type: string
+          readOnly: true
+          description: Real NBA team this player is associated with, if any
+        relevancy:
+          type: number
+          format: double
+          readOnly: true
+          description: Relevancy score of the player based on performance metrics
+        contract:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Contract information for the player, if they are part of a
+            team
+        team:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Team information for the player, if they are part of a team
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
         primary_position:
           enum:
           - G
           - F
           - C
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
           description: |-
-            Primary position: G (Guard), F (Forward), or C (Center)
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
         secondary_position:
           enum:
           - G
           - F
           - C
           - ''
-          - null
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
-          nullable: true
           description: |-
-            Secondary position (optional): G, F, or C
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
-        is_rfa:
+          x-spec-enum-id: 74aabab8c23db26b
+        nba_id:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_ir:
           type: boolean
-          description: Whether player is a Restricted Free Agent
+          description: Injury Reserve
+        slug:
+          type: string
+          nullable: true
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        metadata:
+          nullable: true
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Date and time when player was added
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
-      - contract_duration
+      - contract
       - created_at
+      - first_name
       - id
-      - name
+      - last_name
+      - photo
       - primary_position
-      - salary
+      - real_team
+      - relevancy
+      - team
       - team_name
+      - updated_at
     PlayerRequest:
       type: object
       properties:
-        name:
+        first_name:
           type: string
           minLength: 1
-          description: Player full name
           maxLength: 100
-        team:
-          type: integer
-          nullable: true
-          description: Team ID this player belongs to (can be null for free agents)
-        salary:
+        last_name:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          description: Player annual salary in dollars
-        contract_duration:
-          type: integer
-          maximum: 10
-          minimum: 1
-          description: Contract length in years (1-10)
+          minLength: 1
+          maxLength: 100
         primary_position:
           enum:
           - G
           - F
           - C
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
           description: |-
-            Primary position: G (Guard), F (Forward), or C (Center)
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
         secondary_position:
           enum:
           - G
           - F
           - C
           - ''
-          - null
           type: string
-          x-spec-enum-id: 74aabab8c23db26b
-          nullable: true
           description: |-
-            Secondary position (optional): G, F, or C
-
             * `G` - Guard
             * `F` - Forward
             * `C` - Center
-        is_rfa:
+          x-spec-enum-id: 74aabab8c23db26b
+        nba_id:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_ir:
           type: boolean
-          description: Whether player is a Restricted Free Agent
+          description: Injury Reserve
+        slug:
+          type: string
+          nullable: true
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        metadata:
+          nullable: true
       required:
-      - contract_duration
-      - name
+      - first_name
+      - last_name
       - primary_position
-      - salary
-    Team:
+    SimplePlayer:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        name:
+        team_name:
           type: string
-          description: Team name
+          readOnly: true
+          description: Name of the team this player belongs to
+        photo:
+          type: string
+          readOnly: true
+          description: URL to the player photo, if available
+        real_team:
+          type: string
+          readOnly: true
+          description: Real NBA team this player is associated with, if any
+        relevancy:
+          type: number
+          format: double
+          readOnly: true
+          description: Relevancy score of the player based on performance metrics
+        contract:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Contract information for the player, if they are part of a
+            team
+        team:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Team information for the player, if they are part of a team
+        first_name:
+          type: string
           maxLength: 100
-        owner:
-          type: integer
-          description: User ID of the team owner
-        owner_username:
+        last_name:
           type: string
-          readOnly: true
-          description: Username of the team owner
-        avatar:
+          maxLength: 100
+        primary_position:
+          enum:
+          - G
+          - F
+          - C
           type: string
-          format: uri
+          description: |-
+            * `G` - Guard
+            * `F` - Forward
+            * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
+        secondary_position:
+          enum:
+          - G
+          - F
+          - C
+          - ''
+          type: string
+          description: |-
+            * `G` - Guard
+            * `F` - Forward
+            * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
+        nba_id:
+          type: string
           nullable: true
-          description: Team avatar image (optional)
-        total_salary:
+          maxLength: 20
+        is_ir:
+          type: boolean
+          description: Injury Reserve
+        slug:
           type: string
-          readOnly: true
-          description: Total salary of all players on the team
-        total_players:
-          type: string
-          readOnly: true
-          description: Number of players currently on the team
+          nullable: true
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        metadata:
+          nullable: true
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Date and time when team was created
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
+      - contract
+      - created_at
+      - first_name
+      - id
+      - last_name
+      - photo
+      - primary_position
+      - real_team
+      - relevancy
+      - team
+      - team_name
+      - updated_at
+    SimplePlayerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        primary_position:
+          enum:
+          - G
+          - F
+          - C
+          type: string
+          description: |-
+            * `G` - Guard
+            * `F` - Forward
+            * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
+        secondary_position:
+          enum:
+          - G
+          - F
+          - C
+          - ''
+          type: string
+          description: |-
+            * `G` - Guard
+            * `F` - Forward
+            * `C` - Center
+          x-spec-enum-id: 74aabab8c23db26b
+        nba_id:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_ir:
+          type: boolean
+          description: Injury Reserve
+        slug:
+          type: string
+          nullable: true
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        metadata:
+          nullable: true
+      required:
+      - first_name
+      - last_name
+      - primary_position
+    SimpleTeam:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        owner_username:
+          type: string
+          readOnly: true
+          description: Username of the team owner
+        total_salary:
+          type: number
+          format: double
+          readOnly: true
+          description: Total salary of all players on the team
+        total_players:
+          type: integer
+          readOnly: true
+          description: Number of players currently on the team
+        available_salary:
+          type: number
+          format: double
+          readOnly: true
+          description: Available salary cap after accounting for current team salary
+        available_players:
+          type: integer
+          readOnly: true
+          description: Number of available player slots based on current roster and
+            league settings
+        can_bid:
+          type: boolean
+          readOnly: true
+          description: Whether the team can bid on players based on current roster
+            and salary cap
+        name:
+          type: string
+          maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        owner:
+          type: integer
+      required:
+      - available_players
+      - available_salary
+      - can_bid
       - created_at
       - id
       - name
@@ -2004,85 +3706,386 @@ components:
       - owner_username
       - total_players
       - total_salary
+      - updated_at
+    SimpleTeamRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        owner:
+          type: integer
+      required:
+      - name
+      - owner
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        owner_username:
+          type: string
+          readOnly: true
+          description: Username of the team owner
+        total_salary:
+          type: number
+          format: double
+          readOnly: true
+          description: Total salary of all players on the team
+        total_players:
+          type: integer
+          readOnly: true
+          description: Number of players currently on the team
+        available_salary:
+          type: number
+          format: double
+          readOnly: true
+          description: Available salary cap after accounting for current team salary
+        available_players:
+          type: integer
+          readOnly: true
+          description: Number of available player slots based on current roster and
+            league settings
+        can_bid:
+          type: boolean
+          readOnly: true
+          description: Whether the team can bid on players based on current roster
+            and salary cap
+        players:
+          type: array
+          items: {}
+          readOnly: true
+          description: List of players currently on the team
+        current_picks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pick'
+          readOnly: true
+          description: List of draft picks owned by the team
+        name:
+          type: string
+          maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        owner:
+          type: integer
+      required:
+      - available_players
+      - available_salary
+      - can_bid
+      - created_at
+      - current_picks
+      - id
+      - name
+      - owner
+      - owner_username
+      - players
+      - total_players
+      - total_salary
+      - updated_at
     TeamRequest:
       type: object
       properties:
         name:
           type: string
           minLength: 1
-          description: Team name
           maxLength: 100
         owner:
           type: integer
-          description: User ID of the team owner
-        avatar:
-          type: string
-          format: binary
-          nullable: true
-          description: Team avatar image (optional)
       required:
       - name
       - owner
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    Trade:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sender:
+          $ref: '#/components/schemas/SimpleTeam'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleTeam'
+        assets:
+          type: object
+          description: |-
+            Get the assets involved in the trade, categorized by type.
+
+            Args:
+                    obj (Trade): The trade instance.
+
+            Raises:
+                    ValidationError: If an unknown asset type is encountered.
+
+            Returns:
+                    Asset: A dictionary with asset types as keys and lists of serialized assets as values.
+          properties:
+            players:
+              type: array
+              items:
+                type: object
+                additionalProperties: {}
+            picks:
+              type: array
+              items:
+                type: object
+                additionalProperties: {}
+          required:
+          - picks
+          - players
+          readOnly: true
+        status:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+          description: |-
+            Get the current overall status of the trade.
+
+            Args:
+                    obj (Trade): The trade instance.
+
+            Returns:
+                    dict[str, dict[int, str]]: The current status code of the trade.
+          readOnly: true
+        done:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        parent:
+          type: integer
+          nullable: true
+      required:
+      - assets
+      - created_at
+      - id
+      - participants
+      - sender
+      - status
+      - updated_at
+    TradeRequest:
+      type: object
+      properties:
+        sender:
+          $ref: '#/components/schemas/SimpleTeamRequest'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleTeamRequest'
+        done:
+          type: boolean
+        parent:
+          type: integer
+          nullable: true
+      required:
+      - participants
+      - sender
     User:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        team:
+          allOf:
+          - $ref: '#/components/schemas/Team'
+          readOnly: true
+          description: Team information for the user, if they own a team
+        password:
+          type: string
+          maxLength: 128
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
         username:
           type: string
-          description: Unique username for the user
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
           maxLength: 150
         email:
           type: string
           format: email
           title: Email address
-          description: User email address
           maxLength: 254
-        first_name:
-          type: string
-          description: User first name
-          maxLength: 150
-        last_name:
-          type: string
-          description: User last name
-          maxLength: 150
-        is_admin:
+        is_staff:
           type: boolean
-          description: Whether the user has admin privileges
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
         date_joined:
           type: string
           format: date-time
           readOnly: true
-          description: Date and time when user joined
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_approved:
+          type: boolean
+          description: User is approved to participate in the league
+        phone_country_code:
+          type: string
+          description: User's cellphone country code
+          maxLength: 8
+        phone_number:
+          type: string
+          description: User's cellphone number
+          maxLength: 31
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
       required:
+      - created_at
       - date_joined
       - id
+      - password
+      - team
+      - updated_at
       - username
-    UserRegistrationRequest:
+    UserRegistration:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
         username:
           type: string
-          minLength: 1
-          description: Unique username for the user
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
           maxLength: 150
         email:
           type: string
           format: email
           title: Email address
-          description: User email address
           maxLength: 254
-        first_name:
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        date_joined:
           type: string
-          description: User first name
-          maxLength: 150
-        last_name:
+          format: date-time
+        created_at:
           type: string
-          description: User last name
-          maxLength: 150
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_approved:
+          type: boolean
+          description: User is approved to participate in the league
+        phone_country_code:
+          type: string
+          description: User's cellphone country code
+          maxLength: 8
+        phone_number:
+          type: string
+          description: User's cellphone number
+          maxLength: 31
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
+      required:
+      - created_at
+      - id
+      - updated_at
+      - username
+    UserRegistrationRequest:
+      type: object
+      properties:
         password:
           type: string
           writeOnly: true
@@ -2093,6 +4096,67 @@ components:
           writeOnly: true
           minLength: 1
           description: Must match the password field
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        date_joined:
+          type: string
+          format: date-time
+        is_approved:
+          type: boolean
+          description: User is approved to participate in the league
+        phone_country_code:
+          type: string
+          description: User's cellphone country code
+          maxLength: 8
+        phone_number:
+          type: string
+          description: User's cellphone number
+          maxLength: 31
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
       required:
       - password
       - password_confirm
@@ -2100,30 +4164,70 @@ components:
     UserRequest:
       type: object
       properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
         username:
           type: string
           minLength: 1
-          description: Unique username for the user
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
           maxLength: 150
         email:
           type: string
           format: email
           title: Email address
-          description: User email address
           maxLength: 254
-        first_name:
-          type: string
-          description: User first name
-          maxLength: 150
-        last_name:
-          type: string
-          description: User last name
-          maxLength: 150
-        is_admin:
+        is_staff:
           type: boolean
-          description: Whether the user has admin privileges
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_approved:
+          type: boolean
+          description: User is approved to participate in the league
+        phone_country_code:
+          type: string
+          description: User's cellphone country code
+          maxLength: 8
+        phone_number:
+          type: string
+          description: User's cellphone number
+          maxLength: 31
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
       required:
+      - password
       - username
   securitySchemes:
     jwtAuth:

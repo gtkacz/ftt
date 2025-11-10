@@ -49,9 +49,9 @@ class Team(models.Model):
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]
 
 	@property
-	def players(self) -> models.QuerySet["Player"]:
+	def players(self) -> models.QuerySet["Player"]:  # noqa: F821
 		"""Return all players associated with this team."""
-		from core.models.player import Player  # noqa: PLC0415
+		from core.models.player import Player
 
 		return Player.objects.filter(contract__team=self)
 

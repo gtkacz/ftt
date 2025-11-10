@@ -7,7 +7,7 @@ from trade.models import Trade
 from trade.types.assets import Asset
 
 
-class TradeSerializer(ModelSerializer):  # noqa: D101
+class TradeSerializer(ModelSerializer):
 	sender = SimpleTeamSerializer()
 	participants = SimpleTeamSerializer(many=True)
 	assets = SerializerMethodField()
@@ -63,6 +63,6 @@ class TradeSerializer(ModelSerializer):  # noqa: D101
 		"""
 		return {"participants": obj.participant_statuses, "commissioners": obj.commissioner_statuses}
 
-	class Meta:  # noqa: D106
+	class Meta:
 		model = Trade
 		fields = "__all__"

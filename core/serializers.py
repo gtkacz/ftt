@@ -74,7 +74,7 @@ class NBATeamSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = NBATeam
 		fields = "__all__"
-		read_only_fields = ["id", "created_at"]
+		read_only_fields = ("id", "created_at")
 
 
 class SimpleTeamSerializer(serializers.ModelSerializer):
@@ -98,7 +98,7 @@ class SimpleTeamSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Team
 		fields = "__all__"
-		read_only_fields = ["id", "created_at", "total_salary", "total_players"]
+		read_only_fields = ("id", "created_at", "total_salary", "total_players")
 
 	def get_total_salary(self, obj: Team) -> float:
 		return obj.total_salary()
@@ -139,7 +139,7 @@ class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = "__all__"
-		read_only_fields = ["id", "date_joined"]
+		read_only_fields = ("id", "date_joined")
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -151,7 +151,7 @@ class ContractSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Contract
 		fields = "__all__"
-		read_only_fields = ["id", "created_at", "team"]
+		read_only_fields = ("id", "created_at", "team")
 
 
 class SimplePlayerSerializer(serializers.ModelSerializer):
@@ -224,7 +224,7 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Player
 		fields = "__all__"
-		read_only_fields = ["id", "created_at"]
+		read_only_fields = ("id", "created_at")
 
 
 class PlayerSerializer(SimplePlayerSerializer):
@@ -298,15 +298,15 @@ class PlayerSerializer(SimplePlayerSerializer):
 	class Meta:
 		model = Player
 		fields = "__all__"
-		read_only_fields = ["id", "created_at"]
+		read_only_fields = ("id", "created_at")
 
 
 class NotificationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Notification
 		fields = "__all__"
-		read_only_fields = ["id", "created_at", "updated_at"]
-		extra_kwargs = {
+		read_only_fields = ("id", "created_at", "updated_at")
+		extra_kwargs = {  # noqa: RUF012
 			"user": {"required": False, "allow_null": True},
 			"read": {"default": False},
 		}

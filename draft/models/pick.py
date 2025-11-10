@@ -6,6 +6,7 @@ from django.db import models
 
 from core.models import Notification
 
+
 class Pick(models.Model):
 	"""Draft capital/assets that teams own."""
 
@@ -33,13 +34,14 @@ class Pick(models.Model):
 		help_text="Additional data related to the pick's protection (e.g., value of X for TOP_X protection)",
 	)
 	protection_conveyed = models.BooleanField(
-		default=False, help_text="Indicates if the pick's protection has been conveyed to the receiving team",
+		default=False,
+		help_text="Indicates if the pick's protection has been conveyed to the receiving team",
 	)
 
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
-	class Meta:  # noqa: D106
+	class Meta:
 		ordering = ("draft_year", "round_number")
 		unique_together = ("original_team", "draft_year", "round_number")
 		indexes = (models.Index(fields=["draft_year", "current_team"]),)

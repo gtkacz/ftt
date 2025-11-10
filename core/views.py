@@ -23,7 +23,7 @@ from .serializers import (
 class UserRegistrationView(generics.CreateAPIView):
 	queryset = User.objects.all()
 	serializer_class = UserRegistrationSerializer
-	permission_classes = [permissions.AllowAny]
+	permission_classes = (permissions.AllowAny,)
 
 	def create(self, request, *args, **kwargs):
 		serializer = self.get_serializer(data=request.data)
@@ -86,13 +86,13 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 class TeamListCreateView(generics.ListCreateAPIView):
 	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
-	filterset_fields = [field.name for field in Team._meta.fields if field.name != "avatar"]
+	filterset_fields = (field.name for field in Team._meta.fields if field.name != "avatar")
 
 
 class TeamDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Team.objects.all()
 	serializer_class = TeamSerializer
-	filterset_fields = [field.name for field in Team._meta.fields if field.name != "avatar"]
+	filterset_fields = (field.name for field in Team._meta.fields if field.name != "avatar")
 
 
 @api_view(["GET"])
@@ -129,21 +129,21 @@ def team_picks_view(request, pk):
 class PlayerListCreateView(generics.ListCreateAPIView):
 	queryset = Player.objects.all()
 	serializer_class = SimplePlayerSerializer
-	filterset_fields = [field.name for field in Player._meta.fields if field.name != "metadata"]
+	filterset_fields = (field.name for field in Player._meta.fields if field.name != "metadata")
 
 
 class PlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Player.objects.all()
 	serializer_class = PlayerSerializer
-	filterset_fields = [field.name for field in Player._meta.fields if field.name != "metadata"]
-	ordering_fields = ["id", "name", "position", "team", "salary", "relevancy"]
+	filterset_fields = (field.name for field in Player._meta.fields if field.name != "metadata")
+	ordering_fields = ("id", "name", "position", "team", "salary", "relevancy")
 
 
 class NotificationView(generics.ListAPIView, generics.RetrieveUpdateDestroyAPIView):
 	queryset = Notification.objects.all()
 	serializer_class = NotificationSerializer
-	filterset_fields = ["user", "is_read", "created_at", "level", "priority"]
-	ordering_fields = ["created_at"]
+	filterset_fields = ("user", "is_read", "created_at", "level", "priority")
+	ordering_fields = ("created_at",)
 
 	def get_queryset(self):
 		return self.queryset.filter(user=self.request.user).order_by("-created_at")
