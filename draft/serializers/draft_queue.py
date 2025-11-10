@@ -11,7 +11,7 @@ class DraftQueueSerializer(serializers.ModelSerializer):
 	draft_year = serializers.IntegerField(source="draft.year", read_only=True)
 
 	def get_queue_items(self, obj):
-		"""Return a list of player IDs in the draft queue"""
+		"""Return a list of player IDs in the draft queue."""
 		return (
 			[SimplePlayerSerializer(Player.objects.get(id=item)).data for item in obj.queue_items]
 			if obj.queue_items

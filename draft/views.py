@@ -54,7 +54,7 @@ class DraftPositionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @api_view(["POST"])
 def generate_draft_order(request, draft_id):
-	"""Generate draft order for a draft based on team standings or custom order"""
+	"""Generate draft order for a draft based on team standings or custom order."""
 	try:
 		draft = Draft.objects.get(id=draft_id)
 		teams_order = request.data.get("teams_order", [])  # List of team IDs in draft order
@@ -88,7 +88,7 @@ def generate_draft_order(request, draft_id):
 
 @api_view(["GET"])
 def draft_board(request, draft_id):
-	"""Get the current state of the draft board"""
+	"""Get the current state of the draft board."""
 	try:
 		draft = Draft.objects.get(id=draft_id)
 		positions = DraftPick.objects.filter(draft=draft).order_by("overall_pick")
@@ -228,14 +228,14 @@ class DraftQueueListCreateView(generics.ListCreateAPIView, generics.RetrieveUpda
 	serializer_class = DraftQueueSerializer
 
 	def get_queryset(self):
-		"""Filter queryset based on the draft ID from the URL"""
+		"""Filter queryset based on the draft ID from the URL."""
 		draft_id = self.kwargs.get("draft")
 		return DraftQueue.objects.filter(draft__id=draft_id, team__owner__username=self.request.user.username)
 
 
 @api_view(["POST"])
 def reorder_queue(request, pk):
-	"""Reorder the entire draft queue"""
+	"""Reorder the entire draft queue."""
 	try:
 		queue = DraftQueue.objects.get(id=pk, team__owner=request.user)
 		serializer = ReorderQueueSerializer(data=request.data)
