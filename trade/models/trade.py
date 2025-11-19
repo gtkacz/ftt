@@ -365,7 +365,7 @@ class Trade(models.Model):
 		accepted_status = TradeStatuses.ACCEPTED
 
 		for participant in self.participants.all():
-			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
+			participant_statuses = statuses.filter(actioned_by=participant).exclude(status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if participant.id != self.sender.id and (
 				not participant_statuses.exists() or participant_statuses.first().status != accepted_status
@@ -386,7 +386,7 @@ class Trade(models.Model):
 		rejected_status = TradeStatuses.REJECTED
 
 		for participant in self.participants.all():
-			participant_statuses = statuses.filter(actioned_by=participant).order_by("-created_at")
+			participant_statuses = statuses.filter(actioned_by=participant).exclude(status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if participant_statuses.exists() and participant_statuses.first().status == rejected_status:
 				return True
@@ -407,7 +407,7 @@ class Trade(models.Model):
 
 		# Check for admin approval
 		for admin in self.get_admins():
-			admin_statuses = statuses.filter(actioned_by=admin).order_by("-created_at")
+			admin_statuses = statuses.filter(actioned_by=admin, status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if admin_statuses.exists() and admin_statuses.first().status == approved_status:
 				return True
@@ -417,7 +417,7 @@ class Trade(models.Model):
 		total_commissioners = self.get_commissioners().count()
 
 		for commissioner in self.get_commissioners():
-			commissioner_statuses = statuses.filter(actioned_by=commissioner).order_by("-created_at")
+			commissioner_statuses = statuses.filter(actioned_by=commissioner, status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if commissioner_statuses.exists() and commissioner_statuses.first().status == approved_status:
 				approvals += 1
@@ -438,7 +438,7 @@ class Trade(models.Model):
 
 		# Check for admin veto
 		for admin in self.get_admins():
-			admin_statuses = statuses.filter(actioned_by=admin).order_by("-created_at")
+			admin_statuses = statuses.filter(actioned_by=admin, status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if admin_statuses.exists() and admin_statuses.first().status == vetoed_status:
 				return True
@@ -448,7 +448,7 @@ class Trade(models.Model):
 		total_commissioners = self.get_commissioners().count()
 
 		for commissioner in self.get_commissioners():
-			commissioner_statuses = statuses.filter(actioned_by=commissioner).order_by("-created_at")
+			commissioner_statuses = statuses.filter(actioned_by=commissioner, status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at")
 
 			if commissioner_statuses.exists() and commissioner_statuses.first().status == vetoed_status:
 				vetoes += 1
@@ -480,9 +480,9 @@ class Trade(models.Model):
 		statuses = self.statuses.all()
 
 		for participant in self.participants.all():
-			if statuses.filter(actioned_by=participant).order_by("-created_at").exists():
+			if statuses.filter(actioned_by=participant).exclude(status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at").exists():
 				status_dict[participant.id] = django_obj_to_dict(
-					statuses.filter(actioned_by=participant).order_by("-created_at").first(),
+					statuses.filter(actioned_by=participant).exclude(status__in=TradeStatuses.get_staff_only_statuses()).order_by("-created_at").first(),
 				)
 
 		if any(participant.id not in status_dict for participant in self.participants.all()):
@@ -569,7 +569,11 @@ class Trade(models.Model):
 			if entry is None:
 				continue
 
-			hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
+			# For APPROVED/VETOED, exclude timestamp to ensure only one entry appears
+			if entry.action in {TradeStatuses.APPROVED, TradeStatuses.VETOED}:
+				hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}"
+			else:
+				hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
 			timeline_entries[hash_key] = entry
 
 		# Sort timeline entries by timestamp
@@ -632,11 +636,11 @@ class Trade(models.Model):
 			action = TradeStatuses.REJECTED
 			description = f"The trade was rejected by {entry.actioned_by}."
 
-		elif self.is_approved:
+		elif entry.status == TradeStatuses.APPROVED:
 			action = TradeStatuses.APPROVED
 			description = "The trade was approved."
 
-		elif self.is_vetoed:
+		elif entry.status == TradeStatuses.VETOED:
 			action = TradeStatuses.VETOED
 			description = "The trade was vetoed."
 
