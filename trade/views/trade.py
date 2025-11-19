@@ -85,7 +85,7 @@ class TradeViewSet(
 						draft_pick_id=pick_id,
 					)
 
-			trade.handle_changes()
+			trade.save()
 			trade.validate_compliance()
 
 		return Response({"status": f"Trade created successfully: {trade}"}, status=status.HTTP_201_CREATED)

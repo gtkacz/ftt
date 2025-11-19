@@ -37,15 +37,10 @@ class Trade(models.Model):
 		return f"Trade #{self.pk} by {self.sender}"
 
 	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D102
-		if hasattr(self, "pk") and self.pk:
+		if self.pk:
 			self.handle_changes()
 
-			if self.is_finalized:
-				self.done = True
-
 		super().save(*args, **kwargs)
-
-		self.handle_changes()
 
 	def validate_compliance(self) -> None:
 		"""
@@ -253,7 +248,11 @@ class Trade(models.Model):
 		if action not in action_method_map:
 			raise ValidationError(f"Invalid action: {action}")
 
-		return action_method_map[action](team)
+		result = action_method_map[action](team)
+
+		self.save()
+
+		return result
 
 	@atomic
 	def make_counteroffer(self, offer: "Trade") -> "Trade":
