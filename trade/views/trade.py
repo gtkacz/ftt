@@ -34,10 +34,10 @@ class TradeViewSet(
 	def get_queryset(self) -> Trade:
 		"""Restrict trades to those involving the authenticated user's team."""
 		user = self.request.user
-		queryset = Trade.objects.filter(participants__owner=user).distinct()
+		queryset = Trade.objects.all()
 
 		if not user.is_staff and not user.is_superuser:
-			queryset = queryset.filter(user=user)
+			queryset = queryset.filter(participants__owner=user).distinct()
 
 		return queryset
 

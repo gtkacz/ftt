@@ -12,6 +12,7 @@ class TradeSerializer(ModelSerializer):
 	participants = SimpleTeamSerializer(many=True)
 	assets = SerializerMethodField()
 	status = SerializerMethodField()
+	timeline = SerializerMethodField()
 
 	@staticmethod
 	def get_assets(obj: Trade) -> Asset:
@@ -36,8 +37,8 @@ class TradeSerializer(ModelSerializer):
 			return assets
 
 		for asset in obj.assets.all():
-			if asset.asset_type == "player" and asset.player_contract is not None:
-				serialized_player = SimplePlayerSerializer(asset.player_contract).data
+			if asset.asset_type == "player" and asset.player_contract.player is not None:
+				serialized_player = SimplePlayerSerializer(asset.player_contract.player).data
 				assets["players"].append(serialized_player)
 				continue
 
@@ -62,6 +63,25 @@ class TradeSerializer(ModelSerializer):
 			dict[str, dict[int, str]]: The current status code of the trade.
 		"""
 		return {"participants": obj.participant_statuses, "commissioners": obj.commissioner_statuses}
+
+	@staticmethod
+	def get_timeline(obj: Trade) -> dict[str, dict[int, str]]:
+		"""
+		Get the timeline of status changes for the trade.
+
+		Args:
+			obj (Trade): The trade instance.
+
+		Returns:
+			dict[str, dict[int, str]]: The timeline of status changes.
+		"""
+		timeline = obj.timeline
+
+		for entry in timeline:
+			if entry["actioned_by"] is not None:
+				entry["actioned_by"] = SimpleTeamSerializer(entry["actioned_by"]).data
+
+		return timeline
 
 	class Meta:
 		model = Trade

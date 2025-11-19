@@ -130,16 +130,18 @@ class TeamSerializer(SimpleTeamSerializer):
 		return SimplePlayerSerializer(obj.players.all(), many=True).data
 
 
-class UserSerializer(serializers.ModelSerializer):
-	team = TeamSerializer(
-		read_only=True,
-		help_text="Team information for the user, if they own a team",
-	)
-
+class SimpleUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = "__all__"
 		read_only_fields = ("id", "date_joined")
+
+
+class UserSerializer(SimpleUserSerializer):
+	team = TeamSerializer(
+		read_only=True,
+		help_text="Team information for the user, if they own a team",
+	)
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -193,9 +195,10 @@ class SimplePlayerSerializer(serializers.ModelSerializer):
 		return ""
 
 	def get_photo(self, obj: Player) -> str:
-		if obj.nba_id:
-			return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png"
-		return ""
+		if not obj.nba_id:
+			return ""
+
+		return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{obj.nba_id}.png"
 
 	def get_relevancy(self, obj: Player) -> float:
 		try:

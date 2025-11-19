@@ -40,7 +40,11 @@ class Trade(models.Model):
 		if hasattr(self, "pk") and self.pk:
 			self.handle_changes()
 
+			if self.is_finalized:
+				self.done = True
+
 		super().save(*args, **kwargs)
+
 
 		self.handle_changes()
 
@@ -563,7 +567,7 @@ class Trade(models.Model):
 			if entry is None:
 				continue
 
-			hash_key = f"{entry.team.id if entry.team else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
+			hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
 			timeline_entries[hash_key] = entry
 
 		# Sort timeline entries by timestamp
@@ -645,7 +649,7 @@ class Trade(models.Model):
 
 		return Box(
 			TimelineEntry(
-				team=team,
+				actioned_by=team,
 				action=action,
 				timestamp=entry.created_at,
 				description=description,

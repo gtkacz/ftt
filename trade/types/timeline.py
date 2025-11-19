@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, TypedDict
 
-from core.models import User
+from core.models import Team
 from trade.enums.trade_statuses import TradeStatuses
 
 
@@ -10,5 +10,5 @@ class TimelineEntry(TypedDict):
 
 	status: TradeStatuses
 	timestamp: datetime
-	actioned_by: Optional[User]
+	actioned_by: Optional[Team]
 	description: str
