@@ -7,11 +7,14 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 
-from core.models import Notification, Team, User
+from core.models import Contract, Notification, Team, User
+from draft.models.pick import Pick
 from ftt.common.util import django_obj_to_dict
 from ftt.settings import LEAGUE_SETTINGS
 from trade.enums.trade_statuses import TradeStatuses
+from trade.models.trade_asset import TradeAsset
 from trade.models.trade_status import TradeStatus
+from trade.types.assets import Asset
 from trade.types.timeline import TimelineEntry
 
 
@@ -131,7 +134,7 @@ class Trade(models.Model):
 			return
 
 		# When the trade is sent, create trade statuses for participants
-		if self.is_waiting_acceptance and not self.is_counteroffer:
+		if self.is_waiting_acceptance:
 			# Only proceed if SENT statuses haven't been created yet
 			if not self.statuses.filter(status=TradeStatuses.SENT).exists():
 				TradeStatus.objects.bulk_create(
@@ -255,26 +258,53 @@ class Trade(models.Model):
 		return result
 
 	@atomic
-	def make_counteroffer(self, offer: "Trade") -> "Trade":
+	def make_counteroffer(self, counteroffer: "Trade", offer: list[Asset]) -> "Trade":
 		"""
 		Create a counteroffer trade based on this trade.
 
 		Args:
-			offer (Trade): The trade offer to base the counteroffer on.
+			counteroffer (Trade): The trade offer to base the counteroffer on.
+			offer (list[Asset]): The list of assets included in the counteroffer.
 
 		Returns:
 			Trade: The newly created counteroffer trade.
 		"""
-		counteroffer = Trade.objects.create(sender=offer.sender, parent=self)
+		counteroffer.parent = self
 
 		counteroffer.participants.set(self.participants.all())
 
-		for asset in offer.assets.all():
-			asset.pk = None  # Reset primary key to create a new object
-			asset.trade = counteroffer
-			asset.save()
+		for asset_data in offer:
+			curr_receiver_id = asset_data["receiver"]
+			player_assets = asset_data["assets"]["players"]
+			pick_assets = asset_data["assets"]["picks"]
 
-		counteroffer.handle_changes()
+			for player_contract_id in player_assets:
+				TradeAsset.objects.create(
+					trade=counteroffer,
+					sender=Contract.objects.get(id=player_contract_id).team,
+					receiver_id=curr_receiver_id,
+					asset_type="player",
+					player_contract_id=player_contract_id,
+				)
+
+			for pick in pick_assets:
+				pick_id = pick["id"]
+				pick_protection = pick.get("protection", "unprotected")
+
+				curr_pick = Pick.objects.get(id=pick_id)
+				curr_pick.protection = pick_protection
+				curr_pick.save()
+
+				TradeAsset.objects.create(
+					trade=counteroffer,
+					sender=curr_pick.current_team,
+					receiver_id=curr_receiver_id,
+					asset_type="pick",
+					draft_pick_id=pick_id,
+				)
+
+		counteroffer.save()
+		self.save()
 
 		return counteroffer
 
@@ -575,6 +605,14 @@ class Trade(models.Model):
 			else:
 				hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
 			timeline_entries[hash_key] = entry
+
+		# If this is a counteroffer, join to the parent trade's timeline
+		if self.is_counteroffer and self.parent:
+			parent_timeline = self.parent.timeline
+
+			for entry in parent_timeline:
+				hash_key = f"{entry.actioned_by.id if entry.actioned_by else 'none'}-{entry.action}-{entry.timestamp.isoformat()}"
+				timeline_entries[hash_key] = entry
 
 		# Sort timeline entries by timestamp
 		return sorted(timeline_entries.values(), key=lambda x: x.timestamp)

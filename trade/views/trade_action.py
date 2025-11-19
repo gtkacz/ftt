@@ -1,3 +1,4 @@
+from django.db.transaction import atomic
 from rest_framework import exceptions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -29,15 +30,20 @@ class TradeActionView(APIView):
 
 		team = Team.objects.get(owner=request.user)
 
-		if action.upper() == TradeStatuses.COUNTEROFFER.value:
-			offer = request.data.get("offer", None)
+		if action.lower() == TradeStatuses.COUNTEROFFER.value:
+			with atomic():
+				offer = request.data.get("offer", None)
 
-			if offer is None:
-				raise exceptions.ParseError("Offer is required for counteroffer action.")
+				if offer is None:
+					raise exceptions.ParseError("Offer is required for counteroffer action.")
 
-			Trade.objects.get(pk=trade_id).make_counteroffer(
-				offer=offer,
-			)
+				counteroffer = Trade.objects.create(
+					sender=team,
+				)
+
+				Trade.objects.get(pk=trade_id).make_counteroffer(
+					counteroffer=counteroffer, offer=offer,
+				)
 
 		else:
 			Trade.objects.get(pk=trade_id).make_route(TradeStatuses[action.upper()], team)

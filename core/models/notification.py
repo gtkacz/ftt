@@ -33,7 +33,7 @@ class Notification(models.Model):
 		return f"Notification for {self.user.username}: {self.message}"
 
 	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, D102
-		if not self.pk and ENV.SEND_SMS_MESSAGES:
-			get_sms_service().send_sms(f"New notification: {self.message}")
+		if not self.pk and ENV.SEND_SMS_MESSAGES and self.user.phone:
+			get_sms_service().send_sms(f"New notification: {self.message}", self.user.phone)
 
 		super().save(*args, **kwargs)
