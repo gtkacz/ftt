@@ -290,10 +290,16 @@ class Trade(models.Model):
 			for pick in pick_assets:
 				pick_id = pick["id"]
 				pick_protection = pick.get("protection", "unprotected")
+				pick_metadata = pick.get("metadata", {})
 
 				curr_pick = Pick.objects.get(id=pick_id)
 				curr_pick.protection = pick_protection
 				curr_pick.save()
+
+				# Store metadata in TradeAsset if provided (e.g., x_value for top_x protection)
+				trade_asset_metadata = None
+				if pick_protection == "top_x" and pick_metadata.get("x_value"):
+					trade_asset_metadata = {"x_value": pick_metadata["x_value"]}
 
 				TradeAsset.objects.create(
 					trade=counteroffer,
@@ -301,6 +307,7 @@ class Trade(models.Model):
 					receiver_id=curr_receiver_id,
 					asset_type="pick",
 					draft_pick_id=pick_id,
+					metadata=trade_asset_metadata,
 				)
 
 		counteroffer.save()

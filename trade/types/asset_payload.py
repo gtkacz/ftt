@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, NotRequired
 
 from trade.enums.protections import PickProtections
 
@@ -8,6 +8,7 @@ class PickPayloadDict(TypedDict):
 
 	id: int
 	protection: PickProtections
+	metadata: NotRequired[dict]
 
 
 class AssetPayloadDict(TypedDict):

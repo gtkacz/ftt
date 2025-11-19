@@ -22,6 +22,11 @@ class TradeAsset(models.Model):
 		related_name="trade_assets",
 	)
 	draft_pick = models.ForeignKey(Pick, null=True, blank=True, on_delete=models.CASCADE, related_name="trade_assets")
+	metadata = models.JSONField(
+		null=True,
+		blank=True,
+		help_text="Additional metadata for the asset (e.g., x_value for top_x protection)",
+	)
 
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -61,20 +66,27 @@ class TradeAsset(models.Model):
 
 		This method updates the team associated with the draft pick.
 		"""
-		self.draft_pick.team = self.receiver
+		self.draft_pick.current_team = self.receiver
 
 		if self.draft_pick.protection == Pick.ProtectionChoices.UNPROTECTED.value[0]:
 			return
 
 		if self.draft_pick.protection == Pick.ProtectionChoices.TOP_X.value[0]:
-			_ = self.draft_pick.top_x_value
+			# Initialize or load existing metadata
+			if self.draft_pick.protection_metadata:
+				metadata = (
+					loads(self.draft_pick.protection_metadata)
+					if isinstance(self.draft_pick.protection_metadata, str)
+					else self.draft_pick.protection_metadata
+				)
+			else:
+				metadata = {}
 
-			metadata = (
-				loads(self.draft_pick.protection_metadata)
-				if isinstance(self.draft_pick.protection_metadata, str)
-				else self.draft_pick.protection_metadata
-			)
+			# Copy x_value from TradeAsset.metadata if it exists
+			if self.metadata and self.metadata.get("x_value"):
+				metadata["x_value"] = self.metadata["x_value"]
 
+			# Set conveys_to_team_id
 			metadata["conveys_to_team_id"] = self.receiver.id
 			self.draft_pick.protection_metadata = metadata
 
