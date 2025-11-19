@@ -45,7 +45,6 @@ class Trade(models.Model):
 
 		super().save(*args, **kwargs)
 
-
 		self.handle_changes()
 
 	def validate_compliance(self) -> None:
@@ -138,24 +137,26 @@ class Trade(models.Model):
 
 		# When the trade is sent, create trade statuses for participants
 		if self.is_waiting_acceptance and not self.is_counteroffer:
-			TradeStatus.objects.bulk_create(
-				[
-					TradeStatus(trade=self, actioned_by=participant, status=TradeStatuses.SENT)
-					for participant in self.participants.all()
-				],
-			)
+			# Only proceed if SENT statuses haven't been created yet
+			if not self.statuses.filter(status=TradeStatuses.SENT).exists():
+				TradeStatus.objects.bulk_create(
+					[
+						TradeStatus(trade=self, actioned_by=participant, status=TradeStatuses.SENT)
+						for participant in self.participants.all()
+					],
+				)
 
-			Notification.objects.bulk_create(
-				[
-					Notification(
-						user=participant.owner,
-						message="A new trade has been proposed involving your team.",
-						level="info",
-						redirect_to=f"/trades/{self.pk}/",
-					)
-					for participant in self.participants.all()
-				],
-			)
+				Notification.objects.bulk_create(
+					[
+						Notification(
+							user=participant.owner,
+							message="A new trade has been proposed involving your team.",
+							level="info",
+							redirect_to=f"/trades/{self.pk}/",
+						)
+						for participant in self.participants.all()
+					],
+				)
 
 			return
 
@@ -193,39 +194,41 @@ class Trade(models.Model):
 
 		# If the trade is accepted by all parties, notify everyone involved
 		if self.is_accepted:
-			# Commissioners, for review
-			Notification.objects.bulk_create(
-				[
-					Notification(
-						user=commissioner.owner,
-						message="A trade has been accepted and requires your review as a commissioner.",
-						level="info",
-						redirect_to=f"/trades/{self.pk}/",
-					)
-					for commissioner in self.get_commissioners()
-				],
-			)
+			# Only proceed if PENDING statuses haven't been created yet
+			if not self.statuses.filter(status=TradeStatuses.PENDING).exists():
+				# Commissioners, for review
+				Notification.objects.bulk_create(
+					[
+						Notification(
+							user=commissioner.owner,
+							message="A trade has been accepted and requires your review as a commissioner.",
+							level="info",
+							redirect_to=f"/trades/{self.pk}/",
+						)
+						for commissioner in self.get_commissioners()
+					],
+				)
 
-			# Participants, for information
-			Notification.objects.bulk_create(
-				[
-					Notification(
-						user=participant.owner,
-						message="A trade you are involved in has been accepted by all parties.",
-						level="info",
-						redirect_to=f"/trades/{self.pk}/",
-					)
-					for participant in self.participants.all()
-				],
-			)
+				# Participants, for information
+				Notification.objects.bulk_create(
+					[
+						Notification(
+							user=participant.owner,
+							message="A trade you are involved in has been accepted by all parties.",
+							level="info",
+							redirect_to=f"/trades/{self.pk}/",
+						)
+						for participant in self.participants.all()
+					],
+				)
 
-			# Create trade statuses for commissioners
-			TradeStatus.objects.bulk_create(
-				[
-					TradeStatus(trade=self, actioned_by=commissioner, status=TradeStatuses.PENDING)
-					for commissioner in self.get_commissioners()
-				],
-			)
+				# Create trade statuses for commissioners
+				TradeStatus.objects.bulk_create(
+					[
+						TradeStatus(trade=self, actioned_by=commissioner, status=TradeStatuses.PENDING)
+						for commissioner in self.get_commissioners()
+					],
+				)
 
 			return
 
@@ -284,7 +287,7 @@ class Trade(models.Model):
 		Args:
 			team (Team): The team accepting the trade.
 		"""
-		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.ACCEPTED)
+		TradeStatus.objects.get_or_create(trade=self, actioned_by=team, status=TradeStatuses.ACCEPTED)
 
 		self.handle_changes()
 
@@ -296,7 +299,7 @@ class Trade(models.Model):
 		Args:
 			team (Team): The team rejecting the trade.
 		"""
-		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.REJECTED)
+		TradeStatus.objects.get_or_create(trade=self, actioned_by=team, status=TradeStatuses.REJECTED)
 
 		self.handle_changes()
 
@@ -314,7 +317,7 @@ class Trade(models.Model):
 		if not team.owner.is_superuser and not team.owner.is_staff:
 			raise ValidationError("Only commissioners or admins can approve trades.")
 
-		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.APPROVED)
+		TradeStatus.objects.get_or_create(trade=self, actioned_by=team, status=TradeStatuses.APPROVED)
 
 		self.handle_changes()
 
@@ -332,7 +335,7 @@ class Trade(models.Model):
 		if not team.owner.is_superuser and not team.owner.is_staff:
 			raise ValidationError("Only commissioners or admins can veto trades.")
 
-		TradeStatus.objects.create(trade=self, actioned_by=team, status=TradeStatuses.VETOED)
+		TradeStatus.objects.get_or_create(trade=self, actioned_by=team, status=TradeStatuses.VETOED)
 
 		self.handle_changes()
 
@@ -642,7 +645,7 @@ class Trade(models.Model):
 			team = entry.actioned_by
 
 		if action is None or description is None:
-			if entry.status not in {TradeStatuses.PENDING, TradeStatuses.SENT}:
+			if entry.status not in {TradeStatuses.PENDING, TradeStatuses.SENT, TradeStatuses.APPROVED, TradeStatuses.VETOED}:
 				raise ValidationError(f"Unknown trade status for timeline entry: {entry.status}")
 
 			return None

@@ -72,6 +72,7 @@ class TradeStatus(models.Model):
 		):
 			raise ValidationError("Users cannot use commissioner statuses.")
 
+		print(f"{self.__dict__}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 		super().save(*args, **kwargs)
 
 	@property
