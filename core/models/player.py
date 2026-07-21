@@ -18,6 +18,7 @@ class Player(models.Model):
 	primary_position = models.CharField(max_length=1, choices=POSITION_CHOICES)
 	secondary_position = models.CharField(max_length=1, choices=POSITION_CHOICES, blank=True)
 	nba_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+	espn_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
 	is_ir = models.BooleanField(default=False, help_text="Injury Reserve")
 	real_team = models.ForeignKey(
 		"NBATeam",
