@@ -46,6 +46,8 @@ python-dotenv==1.1.1
     # via -r requirements.in
 requests==2.32.4
     # via -r requirements.in
+simpleeval==1.0.7
+    # via -r requirements.in
 six==1.17.0
     # via
     #   clicksend-client
