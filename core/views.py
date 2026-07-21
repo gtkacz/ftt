@@ -18,6 +18,7 @@ from .serializers import (
 	UserSerializer,
 	UserUpdateSerializer,
 )
+from .services.google_auth_service import GoogleAuthService, GoogleTokenError
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -59,6 +60,31 @@ def login_view(request):
 			})
 
 	return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def google_login_view(request):
+	credential = request.data.get("credential")
+
+	if not credential:
+		return Response({"error": "Missing Google credential"}, status=status.HTTP_400_BAD_REQUEST)
+
+	try:
+		payload = GoogleAuthService.verify_credential(credential)
+	except GoogleTokenError as exc:
+		return Response({"error": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
+
+	user = GoogleAuthService.resolve_user(payload)
+	refresh = RefreshToken.for_user(user)
+	user.last_login = timezone.now()
+	user.save()
+
+	return Response({
+		"user": UserSerializer(user).data,
+		"refresh": str(refresh),
+		"access": str(refresh.access_token),
+	})
 
 
 class UserListCreateView(generics.ListCreateAPIView):

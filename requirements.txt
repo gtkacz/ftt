@@ -8,10 +8,14 @@ certifi==2025.7.14
     # via
     #   clicksend-client
     #   requests
+cffi==2.1.0
+    # via cryptography
 charset-normalizer==3.4.2
     # via requests
 clicksend-client==5.0.78
     # via -r requirements.in
+cryptography==49.0.0
+    # via google-auth
 django==5.2.4
     # via
     #   -r requirements.in
@@ -32,10 +36,18 @@ djangorestframework==3.16.0
     #   djangorestframework-simplejwt
 djangorestframework-simplejwt==5.5.0
     # via -r requirements.in
+google-auth==2.56.0
+    # via -r requirements.in
 idna==3.10
     # via requests
 pillow==11.3.0
     # via -r requirements.in
+pyasn1==0.6.4
+    # via pyasn1-modules
+pyasn1-modules==0.4.2
+    # via google-auth
+pycparser==3.0
+    # via cffi
 pyjwt==2.9.0
     # via djangorestframework-simplejwt
 python-box==7.3.2

@@ -10,6 +10,14 @@ class User(AbstractUser):
 	is_approved = models.BooleanField(default=False, help_text="User is approved to participate in the league")
 	phone_country_code = models.CharField(max_length=8, blank=True, help_text="User's cellphone country code")
 	phone_number = models.CharField(max_length=31, blank=True, help_text="User's cellphone number")
+	google_sub = models.CharField(
+		max_length=255,
+		blank=True,
+		null=True,
+		unique=True,
+		db_index=True,
+		help_text="Google account subject identifier (sub claim) for linked Google sign-in",
+	)
 
 	def __str__(self) -> str:
 		return self.username

@@ -10,4 +10,5 @@ django-filter
 django-sslserver
 Unidecode
 clicksend-client
+google-auth
 simpleeval

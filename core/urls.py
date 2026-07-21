@@ -7,6 +7,7 @@ urlpatterns = [
 	# Auth endpoints
 	path("auth/register/", views.UserRegistrationView.as_view(), name="user-register"),
 	path("auth/login/", views.login_view, name="user-login"),
+	path("auth/google/", views.google_login_view, name="user-google-login"),
 	path("auth/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
 	# User endpoints
 	path("users/", views.UserListCreateView.as_view(), name="user-list-create"),
