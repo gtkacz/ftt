@@ -13,11 +13,17 @@ class ScoringRule(models.Model):
 	name = models.CharField(max_length=100)
 	formula_text = models.TextField()
 	weights_json = models.JSONField(
-		null=True, blank=True, help_text="Grid-mode weights, kept only for round-trip editing"
+		null=True,
+		blank=True,
+		help_text="Grid-mode weights, kept only for round-trip editing",
 	)
 	is_active = models.BooleanField(default=False)
 	updated_by = models.ForeignKey(
-		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="scoring_rules"
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name="scoring_rules",
 	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

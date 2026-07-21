@@ -30,7 +30,9 @@ class ScoringPeriodTests(TestCase):
 	def test_for_datetime_finds_containing_period(self) -> None:
 		now = timezone.now()
 		period = ScoringPeriod.objects.create(
-			index=1, starts_at=now - timedelta(days=1), ends_at=now + timedelta(days=6)
+			index=1,
+			starts_at=now - timedelta(days=1),
+			ends_at=now + timedelta(days=6),
 		)
 		self.assertEqual(ScoringPeriod.for_datetime(now), period)
 		self.assertIsNone(ScoringPeriod.for_datetime(now + timedelta(days=30)))
@@ -42,10 +44,16 @@ class PlayerGameLineTests(TestCase):
 		# test DB, so get_or_create avoids an IntegrityError on the unique abbreviation.
 		self.team, _ = NBATeam.objects.get_or_create(city="San Antonio", name="Spurs", abbreviation="SAS")
 		self.player = Player.objects.create(
-			first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="4433134"
+			first_name="Julian",
+			last_name="Champagnie",
+			primary_position="F",
+			espn_id="4433134",
 		)
 		self.game = NbaGame.objects.create(
-			espn_event_id="401859966", starts_at=timezone.now(), home=self.team, away=self.team
+			espn_event_id="401859966",
+			starts_at=timezone.now(),
+			home=self.team,
+			away=self.team,
 		)
 
 	def test_line_unique_per_player_and_game(self) -> None:

@@ -23,10 +23,16 @@ class NbaGame(models.Model):
 	period = models.PositiveSmallIntegerField(default=0)
 	clock = models.CharField(max_length=10, blank=True)
 	settle_hash = models.CharField(
-		max_length=64, blank=True, help_text="SHA-256 of the last fetched box, for stability detection"
+		max_length=64,
+		blank=True,
+		help_text="SHA-256 of the last fetched box, for stability detection",
 	)
 	scoring_period = models.ForeignKey(
-		"scoring.ScoringPeriod", on_delete=models.SET_NULL, null=True, blank=True, related_name="games"
+		"scoring.ScoringPeriod",
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name="games",
 	)
 
 	class Meta:
