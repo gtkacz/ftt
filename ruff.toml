@@ -65,6 +65,7 @@ line-ending = "auto"
 "**/{tools,services,scripts}/*" = ["ERA001", "DOC201", "D415", "DTZ011", "PD002", "E501", "RUF005", "T201", "PLW1514", "PTH123", "FURB101", "PD004", "ANN001", "D103", "F821", "D102", "ANN201", "PT009", "DTZ001", "PT027", "D101", "D100", "CPY001", "C409", "C405", "C409", "BLE001", "S311", "S301", "S403", "D104"]
 "**/{views/*,views.py,serializers/*,serializers.py}" = ["ARG002", "PLR6301", "DOC201", "ANN201", "D101", "ARG001", "PLR0911", "ANN001", "D102", "D103", "ANN003", "ANN002"]
 "**/{models/*,models.py}" = ["E501"]
+"**/tests/*" = ["D101", "D102", "PT009"]
 
 [lint.flake8-quotes]
 inline-quotes = "double"
