@@ -40,6 +40,6 @@ class ScoringRule(models.Model):
 	def __str__(self) -> str:
 		return f"{self.name}{' (active)' if self.is_active else ''}"
 
-	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # noqa: D102
+	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # ruff: ignore[undocumented-public-method]
 		validate_formula(self.formula_text)
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]
