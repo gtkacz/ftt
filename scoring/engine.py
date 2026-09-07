@@ -138,7 +138,7 @@ def compile_formula(text: str) -> CompiledFormula:
 
 	Raises:
 		FormulaError: if ``text`` fails validation or fails the zero-line smoke evaluation.
-	"""  # noqa: DOC201
+	"""  # ruff: ignore[docstring-missing-returns]
 	validate_formula(text)
 	compiled = CompiledFormula(text)
 

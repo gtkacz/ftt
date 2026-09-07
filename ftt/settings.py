@@ -144,7 +144,7 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = path.join(BASE_DIR, "media")  # noqa: PTH118
+MEDIA_ROOT = path.join(BASE_DIR, "media")  # ruff: ignore[os-path-join]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

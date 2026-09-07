@@ -146,7 +146,8 @@ def draft_picks_view(request, pk):
 	try:
 		draft = Draft.objects.get(pk=pk)
 		picks = (
-			DraftPick.objects.filter(draft=draft)
+			DraftPick.objects
+			.filter(draft=draft)
 			.select_related(
 				"pick__current_team",
 				"contract",

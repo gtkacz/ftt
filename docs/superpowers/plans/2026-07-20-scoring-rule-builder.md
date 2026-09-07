@@ -198,7 +198,13 @@ _DERIVED = (
 	FieldSpec("FG_MISS", "FG missed", "Field goals missed (FGA - FGM)", 9, "derived"),
 	FieldSpec("TP_MISS", "3PT missed", "Three-pointers missed (TPA - TPM)", 5, "derived"),
 	FieldSpec("FT_MISS", "FT missed", "Free throws missed (FTA - FTM)", 1, "derived"),
-	FieldSpec("DD", "Double-double", "1 if at least two of PTS/REB/AST/STL/BLK reached 10 (a triple-double also counts)", 0, "derived"),
+	FieldSpec(
+		"DD",
+		"Double-double",
+		"1 if at least two of PTS/REB/AST/STL/BLK reached 10 (a triple-double also counts)",
+		0,
+		"derived",
+	),
 	FieldSpec("TD", "Triple-double", "1 if at least three of PTS/REB/AST/STL/BLK reached 10", 0, "derived"),
 )
 
@@ -570,7 +576,9 @@ class ScoringRuleTests(TestCase):
 class ScoringPeriodTests(TestCase):
 	def test_for_datetime_finds_containing_period(self) -> None:
 		now = timezone.now()
-		period = ScoringPeriod.objects.create(index=1, starts_at=now - timedelta(days=1), ends_at=now + timedelta(days=6))
+		period = ScoringPeriod.objects.create(
+			index=1, starts_at=now - timedelta(days=1), ends_at=now + timedelta(days=6)
+		)
 		self.assertEqual(ScoringPeriod.for_datetime(now), period)
 		self.assertIsNone(ScoringPeriod.for_datetime(now + timedelta(days=30)))
 
@@ -578,8 +586,12 @@ class ScoringPeriodTests(TestCase):
 class PlayerGameLineTests(TestCase):
 	def setUp(self) -> None:
 		self.team = NBATeam.objects.create(city="San Antonio", name="Spurs", abbreviation="SAS")
-		self.player = Player.objects.create(first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="4433134")
-		self.game = NbaGame.objects.create(espn_event_id="401859966", starts_at=timezone.now(), home=self.team, away=self.team)
+		self.player = Player.objects.create(
+			first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="4433134"
+		)
+		self.game = NbaGame.objects.create(
+			espn_event_id="401859966", starts_at=timezone.now(), home=self.team, away=self.team
+		)
 
 	def test_line_unique_per_player_and_game(self) -> None:
 		PlayerGameLine.objects.create(player=self.player, game=self.game, raw_stats={"PTS": 5})
@@ -621,9 +633,13 @@ class ScoringRule(models.Model):
 
 	name = models.CharField(max_length=100)
 	formula_text = models.TextField()
-	weights_json = models.JSONField(null=True, blank=True, help_text="Grid-mode weights, kept only for round-trip editing")
+	weights_json = models.JSONField(
+		null=True, blank=True, help_text="Grid-mode weights, kept only for round-trip editing"
+	)
 	is_active = models.BooleanField(default=False)
-	updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="scoring_rules")
+	updated_by = models.ForeignKey(
+		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="scoring_rules"
+	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -699,8 +715,12 @@ class NbaGame(models.Model):
 	status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_SCHEDULED)
 	period = models.PositiveSmallIntegerField(default=0)
 	clock = models.CharField(max_length=10, blank=True)
-	settle_hash = models.CharField(max_length=64, blank=True, help_text="SHA-256 of the last fetched box, for stability detection")
-	scoring_period = models.ForeignKey("scoring.ScoringPeriod", on_delete=models.SET_NULL, null=True, blank=True, related_name="games")
+	settle_hash = models.CharField(
+		max_length=64, blank=True, help_text="SHA-256 of the last fetched box, for stability detection"
+	)
+	scoring_period = models.ForeignKey(
+		"scoring.ScoringPeriod", on_delete=models.SET_NULL, null=True, blank=True, related_name="games"
+	)
 
 	class Meta:
 		ordering = ("starts_at",)
@@ -864,10 +884,28 @@ class ExtractPlayerLinesTests(SimpleTestCase):
 	def test_champagnie_box_line_matches_espn(self) -> None:
 		stats = self.by_name["Julian Champagnie"].stats
 		expected = {
-			"MIN": 33, "PTS": 5, "FGM": 2, "FGA": 9, "TPM": 1, "TPA": 7,
-			"FTM": 0, "FTA": 0, "REB": 5, "AST": 3, "TO": 0, "STL": 4,
-			"BLK": 0, "OREB": 0, "DREB": 5, "PF": 1, "PLUS_MINUS": -4,
-			"FG_MISS": 7, "TP_MISS": 6, "FT_MISS": 0, "DD": 0, "TD": 0,
+			"MIN": 33,
+			"PTS": 5,
+			"FGM": 2,
+			"FGA": 9,
+			"TPM": 1,
+			"TPA": 7,
+			"FTM": 0,
+			"FTA": 0,
+			"REB": 5,
+			"AST": 3,
+			"TO": 0,
+			"STL": 4,
+			"BLK": 0,
+			"OREB": 0,
+			"DREB": 5,
+			"PF": 1,
+			"PLUS_MINUS": -4,
+			"FG_MISS": 7,
+			"TP_MISS": 6,
+			"FT_MISS": 0,
+			"DD": 0,
+			"TD": 0,
 		}
 		for key, value in expected.items():
 			self.assertEqual(stats[key], value, key)
@@ -930,7 +968,9 @@ def fetch_scoreboard(day: date | None = None) -> dict:
 
 def fetch_summary(event_id: str) -> dict:
 	"""Fetch the full game summary (box score, plays, win probability)."""  # noqa: DOC201
-	response = requests.get(f"{BASE_URL}/summary", params={"event": event_id}, headers=_HEADERS, timeout=_TIMEOUT_SECONDS)
+	response = requests.get(
+		f"{BASE_URL}/summary", params={"event": event_id}, headers=_HEADERS, timeout=_TIMEOUT_SECONDS
+	)
 	response.raise_for_status()
 	return response.json()
 
@@ -1055,9 +1095,7 @@ def extract_games(scoreboard: dict) -> list[GameInfo]:
 def _winning_abbrs(summary: dict) -> set[str]:
 	competitors = ((summary.get("header") or {}).get("competitions") or [{}])[0].get("competitors", ())
 	return {
-		(competitor.get("team") or {}).get("abbreviation", "")
-		for competitor in competitors
-		if competitor.get("winner")
+		(competitor.get("team") or {}).get("abbreviation", "") for competitor in competitors if competitor.get("winner")
 	}
 
 
@@ -1162,7 +1200,9 @@ def extract_player_lines(summary: dict) -> list[PlayerLine]:
 			full_stats.setdefault(made_key, 0)
 			full_stats.setdefault(attempted_key, 0)
 
-		lines.append(PlayerLine(espn_id=espn_id, display_name=names_by_id[espn_id], team_abbr=team_abbr, stats=full_stats))
+		lines.append(
+			PlayerLine(espn_id=espn_id, display_name=names_by_id[espn_id], team_abbr=team_abbr, stats=full_stats)
+		)
 
 	return lines
 ```
@@ -1260,12 +1300,18 @@ class UpsertGameTests(TestCase):
 class UpsertLinesTests(TestCase):
 	def setUp(self) -> None:
 		self.team = NBATeam.objects.create(city="San Antonio", name="Spurs", abbreviation="SAS")
-		self.player = Player.objects.create(first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111")
-		self.game = NbaGame.objects.create(espn_event_id="401", starts_at=timezone.now(), home=self.team, away=self.team)
+		self.player = Player.objects.create(
+			first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111"
+		)
+		self.game = NbaGame.objects.create(
+			espn_event_id="401", starts_at=timezone.now(), home=self.team, away=self.team
+		)
 		self.compiled = compile_formula("1*PTS + 2*STL")
 
 	def test_upsert_computes_fpts_and_is_idempotent(self) -> None:
-		lines = [PlayerLine(espn_id="111", display_name="Julian Champagnie", team_abbr="SA", stats={"PTS": 5, "STL": 4})]
+		lines = [
+			PlayerLine(espn_id="111", display_name="Julian Champagnie", team_abbr="SA", stats={"PTS": 5, "STL": 4})
+		]
 		updated, unmatched = ingest.upsert_lines(self.game, lines, self.compiled)
 		self.assertEqual((updated, unmatched), (1, []))
 		self.assertEqual(PlayerGameLine.objects.get().fpts, Decimal("13.00"))
@@ -1279,7 +1325,9 @@ class UpsertLinesTests(TestCase):
 		self.assertEqual((updated, unmatched), (0, ["Un Known"]))
 
 	def test_recompute_all_applies_new_formula(self) -> None:
-		lines = [PlayerLine(espn_id="111", display_name="Julian Champagnie", team_abbr="SA", stats={"PTS": 5, "STL": 4})]
+		lines = [
+			PlayerLine(espn_id="111", display_name="Julian Champagnie", team_abbr="SA", stats={"PTS": 5, "STL": 4})
+		]
 		ingest.upsert_lines(self.game, lines, self.compiled)
 		rule = ScoringRule.objects.create(name="new", formula_text="10*STL", is_active=True)
 		count = ingest.recompute_all(rule)
@@ -1770,9 +1818,13 @@ from scoring.services.extract import PlayerLine
 class SweepTests(TestCase):
 	def setUp(self) -> None:
 		now = timezone.now()
-		self.period = ScoringPeriod.objects.create(index=1, starts_at=now - timedelta(days=3), ends_at=now + timedelta(days=4))
+		self.period = ScoringPeriod.objects.create(
+			index=1, starts_at=now - timedelta(days=3), ends_at=now + timedelta(days=4)
+		)
 		self.team = NBATeam.objects.create(city="San Antonio", name="Spurs", abbreviation="SAS")
-		self.player = Player.objects.create(first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111")
+		self.player = Player.objects.create(
+			first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111"
+		)
 		self.game = NbaGame.objects.create(
 			espn_event_id="401",
 			starts_at=now - timedelta(days=1),
@@ -1783,7 +1835,11 @@ class SweepTests(TestCase):
 		)
 		ScoringRule.objects.create(name="league", formula_text="1*PTS + 1*AST", is_active=True)
 		self.line = PlayerGameLine.objects.create(
-			player=self.player, game=self.game, raw_stats={"PTS": 20, "AST": 5}, fpts=Decimal("25.00"), is_final=True,
+			player=self.player,
+			game=self.game,
+			raw_stats={"PTS": 20, "AST": 5},
+			fpts=Decimal("25.00"),
+			is_final=True,
 		)
 
 	def _sweep_with(self, new_stats: dict) -> dict:
@@ -1870,7 +1926,9 @@ def sweep(days_back: int = 3) -> dict:
 	compiled = ingest.get_active_compiled()
 	result = {"games": 0, "corrections": 0, "applied": 0}
 
-	for game in NbaGame.objects.filter(status=NbaGame.STATUS_SETTLED, starts_at__gte=cutoff).select_related("scoring_period"):
+	for game in NbaGame.objects.filter(status=NbaGame.STATUS_SETTLED, starts_at__gte=cutoff).select_related(
+		"scoring_period"
+	):
 		summary = espn.fetch_summary(game.espn_event_id)
 		espn.save_snapshot(summary, game.espn_event_id)
 		fresh = {line.espn_id: line for line in extract.extract_player_lines(summary)}
@@ -1982,10 +2040,14 @@ class ScoringApiTests(TestCase):
 		self.mortal = user_model.objects.create_user(username="pleb", password="x")
 		self.client_api = APIClient()
 		team = NBATeam.objects.create(city="San Antonio", name="Spurs", abbreviation="SAS")
-		self.player = Player.objects.create(first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111")
+		self.player = Player.objects.create(
+			first_name="Julian", last_name="Champagnie", primary_position="F", espn_id="111"
+		)
 		self.game = NbaGame.objects.create(espn_event_id="401", starts_at=timezone.now(), home=team, away=team)
 		self.rule = ScoringRule.objects.create(name="league", formula_text="1*PTS", is_active=True)
-		PlayerGameLine.objects.create(player=self.player, game=self.game, raw_stats={"PTS": 20, "STL": 4}, fpts=Decimal("20.00"))
+		PlayerGameLine.objects.create(
+			player=self.player, game=self.game, raw_stats={"PTS": 20, "STL": 4}, fpts=Decimal("20.00")
+		)
 
 	def test_fields_requires_auth_and_lists_catalog(self) -> None:
 		self.assertEqual(self.client_api.get("/api/scoring/fields/").status_code, 401)
@@ -1997,7 +2059,9 @@ class ScoringApiTests(TestCase):
 	def test_rules_are_superuser_only(self) -> None:
 		self.client_api.force_authenticate(self.mortal)
 		self.assertEqual(self.client_api.get("/api/scoring/rules/").status_code, 403)
-		self.assertEqual(self.client_api.post("/api/scoring/rules/", {"name": "x", "formula_text": "1*PTS"}).status_code, 403)
+		self.assertEqual(
+			self.client_api.post("/api/scoring/rules/", {"name": "x", "formula_text": "1*PTS"}).status_code, 403
+		)
 
 	def test_create_rule_validates_formula(self) -> None:
 		self.client_api.force_authenticate(self.superuser)
@@ -2202,7 +2266,9 @@ class ScoringRuleViewSet(viewsets.ModelViewSet):
 		game = NbaGame.objects.filter(espn_event_id=request_serializer.validated_data["espn_event_id"]).first()
 
 		if game is None:
-			return Response({"error": "Game not ingested yet. Run backfill_season or wait for the live worker."}, status=404)
+			return Response(
+				{"error": "Game not ingested yet. Run backfill_season or wait for the live worker."}, status=404
+			)
 
 		players = []
 
@@ -2257,7 +2323,7 @@ urlpatterns = [
 `ftt/urls.py` — add after the `trade.urls` include:
 
 ```python
-	path("api/scoring/", include("scoring.urls")),
+(path("api/scoring/", include("scoring.urls")),)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -2553,7 +2619,9 @@ class Command(BaseCommand):
 		if worst > Decimal(str(options["tolerance"])):
 			raise CommandError(f"Parity FAILED: worst per-player delta {worst}")
 
-		self.stdout.write(self.style.SUCCESS(f"Parity OK: {len(mismatches)} players off by <= {options['tolerance']}, worst {worst}"))
+		self.stdout.write(
+			self.style.SUCCESS(f"Parity OK: {len(mismatches)} players off by <= {options['tolerance']}, worst {worst}")
+		)
 ```
 
 - [ ] **Step 7: Full suite, format, commit**
