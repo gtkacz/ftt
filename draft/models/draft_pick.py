@@ -56,7 +56,7 @@ class DraftPick(models.Model):
 	def __str__(self) -> str:
 		return f"{self.draft.year} Draft - Round {self.pick.round_number}, Pick {self.pick_number} ({self.pick.current_team.name})"  # pyright: ignore[reportAttributeAccessIssue]
 
-	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+	def save(self, *args, **kwargs) -> None:  # ruff: ignore[missing-type-args, missing-type-kwargs]
 		"""Override save to handle pick protection transfer."""
 		if self.pick and self.draft:
 			self._handle_draft_pick_transfer()
@@ -87,7 +87,7 @@ class DraftPick(models.Model):
 
 		return pick.first()
 
-	def _handle_draft_pick_transfer(self) -> None:  # noqa: PLR0911
+	def _handle_draft_pick_transfer(self) -> None:  # ruff: ignore[too-many-return-statements]
 		"""
 		Handles the transfer of a draft pick to the receiver team.
 
@@ -161,7 +161,7 @@ class DraftPick(models.Model):
 
 		raise ValidationError("Unknown draft pick protection type.")
 
-	def generate_contract(self) -> Contract:  # noqa: C901, PLR0912
+	def generate_contract(self) -> Contract:  # ruff: ignore[complex-structure, too-many-branches]
 		"""
 		Generate a contract for the drafted player based on the pick number and round number.
 
@@ -254,7 +254,7 @@ class DraftPick(models.Model):
 		)
 
 	def time_left_to_pick(self) -> int:
-		"""Calculates the time left for the current pick in seconds."""  # noqa: DOC201
+		"""Calculates the time left for the current pick in seconds."""  # ruff: ignore[docstring-missing-returns]
 		if not self.started_at or not self.is_current:
 			return self.draft.time_limit_per_pick * 60  # Convert minutes to seconds
 
@@ -269,14 +269,14 @@ class DraftPick(models.Model):
 		return round((deadline - now).total_seconds())
 
 	def can_pick_until(self) -> datetime:
-		"""Calculates the datetime until which the pick can be made."""  # noqa: DOC201
+		"""Calculates the datetime until which the pick can be made."""  # ruff: ignore[docstring-missing-returns]
 		if not self.started_at or not self.is_current:
 			return timezone.now() + timedelta(minutes=self.draft.time_limit_per_pick)
 
 		return self._calculate_pick_deadline(self.started_at, self.draft.time_limit_per_pick)
 
 	def _calculate_pick_deadline(self, start_time: datetime, limit_minutes: int) -> datetime:
-		"""Calculate when the pick deadline will be, accounting for active hours."""  # noqa: DOC201
+		"""Calculate when the pick deadline will be, accounting for active hours."""  # ruff: ignore[docstring-missing-returns]
 		lower_bound = self.draft.pick_hour_lower_bound
 		upper_bound = self.draft.pick_hour_upper_bound
 		app_timezone = ZoneInfo(str(timezone.get_current_timezone()))
@@ -319,7 +319,7 @@ class DraftPick(models.Model):
 		return current_time
 
 	def remaining_seconds(self) -> int:
-		"""Calculates the time left for the current pick in seconds."""  # noqa: DOC201
+		"""Calculates the time left for the current pick in seconds."""  # ruff: ignore[docstring-missing-returns]
 		if not self.started_at or not self.is_current:
 			return self.draft.time_limit_per_pick * 60  # Convert minutes to seconds
 
@@ -330,7 +330,7 @@ class DraftPick(models.Model):
 		return max(0, total_limit_seconds - elapsed_active_seconds)
 
 	def _get_elapsed_active_seconds(self, start_time: datetime, end_time: datetime) -> int:
-		"""Calculate active seconds elapsed between start_time and end_time."""  # noqa: DOC201
+		"""Calculate active seconds elapsed between start_time and end_time."""  # ruff: ignore[docstring-missing-returns]
 		if start_time >= end_time:
 			return 0
 
@@ -360,8 +360,8 @@ class DraftPick(models.Model):
 
 		return round(total_seconds)
 
-	def make_pick(self, player: Player | None, *, is_auto_pick: bool = False) -> Player:  # noqa: C901, PLR0912, PLR0915
-		"""Make a pick for the draft position."""  # noqa: DOC201, DOC501
+	def make_pick(self, player: Player | None, *, is_auto_pick: bool = False) -> Player:  # ruff: ignore[complex-structure, too-many-branches, too-many-statements]
+		"""Make a pick for the draft position."""  # ruff: ignore[docstring-missing-returns, docstring-missing-exception]
 		from draft.models.draft_queue import DraftQueue
 
 		if self.time_left_to_pick() <= 0:

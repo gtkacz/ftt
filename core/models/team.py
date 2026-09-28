@@ -12,14 +12,14 @@ class Team(models.Model):
 
 	name = models.CharField(max_length=100)
 	owner = models.OneToOneField("core.User", on_delete=models.CASCADE, related_name="team")
-	# avatar = models.ImageField(upload_to='team_avatars/', null=True, blank=True, default='team_avatars/logo.png')  # noqa: ERA001
+	# avatar = models.ImageField(upload_to='team_avatars/', null=True, blank=True, default='team_avatars/logo.png')  # ruff: ignore[commented-out-code]
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
 	def __str__(self) -> str:
 		return self.name
 
-	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride] # noqa: D102
+	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride] # ruff: ignore[undocumented-public-method]
 		if not self.id:  # pyright: ignore[reportAttributeAccessIssue]
 			# Create a notification for the owner when the team is created
 			Notification.objects.create(
@@ -49,30 +49,30 @@ class Team(models.Model):
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]
 
 	@property
-	def players(self) -> models.QuerySet["Player"]:  # noqa: F821
+	def players(self) -> models.QuerySet["Player"]:  # ruff: ignore[undefined-name]
 		"""Return all players associated with this team."""
 		from core.models.player import Player
 
 		return Player.objects.filter(contract__team=self)
 
 	def total_salary(self) -> float:
-		"""Calculate the total salary of all players on the team."""  # noqa: DOC201
+		"""Calculate the total salary of all players on the team."""  # ruff: ignore[docstring-missing-returns]
 		return sum(player.contract.salary for player in self.players.filter(is_ir=False))
 
 	def total_players(self) -> int:
-		"""Count the total number of active players on the team."""  # noqa: DOC201
+		"""Count the total number of active players on the team."""  # ruff: ignore[docstring-missing-returns]
 		return self.players.filter(is_ir=False).count()
 
 	def available_salary(self) -> float:
-		"""Calculate the available salary cap for the team."""  # noqa: DOC201
+		"""Calculate the available salary cap for the team."""  # ruff: ignore[docstring-missing-returns]
 		return LEAGUE_SETTINGS.SALARY_CAP - self.total_salary()
 
 	def available_players(self) -> int:
-		"""Calculate the available player slots for the team."""  # noqa: DOC201
+		"""Calculate the available player slots for the team."""  # ruff: ignore[docstring-missing-returns]
 		return LEAGUE_SETTINGS.MAX_PLAYER_CAP - self.total_players()
 
 	def can_bid(self) -> bool:
-		"""Check if the team can place a bid based on salary and player cap."""  # noqa: DOC201
+		"""Check if the team can place a bid based on salary and player cap."""  # ruff: ignore[docstring-missing-returns]
 		return (
 			self.total_players() < LEAGUE_SETTINGS.MAX_PLAYER_CAP and self.total_salary() < LEAGUE_SETTINGS.SALARY_CAP
 		)
