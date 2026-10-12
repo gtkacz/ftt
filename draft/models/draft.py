@@ -49,7 +49,7 @@ class Draft(models.Model):
 		return self.draftable_players.filter(contract__isnull=False)
 
 	def generate_draft_order(self) -> list[int]:
-		"""Generates a snake draft order based on the list of teams."""  # noqa: DOC201
+		"""Generates a snake draft order based on the list of teams."""  # ruff: ignore[docstring-missing-returns]
 		teams = list(self.teams.all().values_list("id", flat=True))
 
 		teams_order = list(teams)
@@ -158,4 +158,4 @@ class Draft(models.Model):
 			output.append(f"{curr} - {curr.selected_player}")  # pyright: ignore[reportOptionalMemberAccess]
 
 		for item in output:
-			print(item)  # noqa: T201
+			print(item)  # ruff: ignore[print]
