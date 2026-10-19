@@ -38,5 +38,5 @@ class Player(models.Model):
 	def __str__(self) -> str:
 		return f"{self.first_name} {self.last_name}"
 
-	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride] # noqa: D102
+	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride] # ruff: ignore[undocumented-public-method]
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]

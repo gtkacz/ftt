@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, help_text='Additional metadata for the asset (e.g., x_value for top_x protection)', null=True),
         ),
     ]
-
