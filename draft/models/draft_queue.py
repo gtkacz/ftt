@@ -28,12 +28,12 @@ class DraftQueue(models.Model):
 	def __str__(self) -> str:
 		return f"{self.team.name} - {self.draft.year} Draft Queue"
 
-	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]  # noqa: D102
+	def save(self, *args: Sequence[Any], **kwargs: dict[str, Any]) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]  # ruff: ignore[undocumented-public-method]
 		for id_ in self.queue_items:  # pyright: ignore[reportGeneralTypeIssues]
 			player = Player.objects.filter(id=id_)
 
 			if not player.exists() or hasattr(player.first(), "contract"):
-				self.queue_items.remove(id_)  # pyright: ignore[reportAttributeAccessIssue]  # noqa: B909
+				self.queue_items.remove(id_)  # pyright: ignore[reportAttributeAccessIssue]  # ruff: ignore[loop-iterator-mutation]
 				Notification.objects.create(
 					user=self.team.owner,
 					message=f"Player {player.first()} has been removed from your draft queue because they are no longer available.",
@@ -44,7 +44,7 @@ class DraftQueue(models.Model):
 		return super().save(*args, **kwargs)  # pyright: ignore[reportArgumentType]
 
 	def get_next_player(self) -> Player | None:
-		"""Get the next available player from the queue, if any."""  # noqa: DOC201
+		"""Get the next available player from the queue, if any."""  # ruff: ignore[docstring-missing-returns]
 		if not self.queue_items:
 			return None
 

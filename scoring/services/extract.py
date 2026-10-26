@@ -68,7 +68,7 @@ def _to_number(value: object) -> float:
 
 
 def extract_games(scoreboard: dict) -> list[GameInfo]:
-	"""Flatten an ESPN scoreboard payload into GameInfo rows."""  # noqa: DOC201
+	"""Flatten an ESPN scoreboard payload into GameInfo rows."""
 	games = []
 
 	for event in scoreboard.get("events", ()):
@@ -105,9 +105,7 @@ def extract_games(scoreboard: dict) -> list[GameInfo]:
 def _winning_abbrs(summary: dict) -> set[str]:
 	competitors = ((summary.get("header") or {}).get("competitions") or [{}])[0].get("competitors", ())
 	return {
-		(competitor.get("team") or {}).get("abbreviation", "")
-		for competitor in competitors
-		if competitor.get("winner")
+		(competitor.get("team") or {}).get("abbreviation", "") for competitor in competitors if competitor.get("winner")
 	}
 
 
@@ -173,7 +171,7 @@ def _pbp_counters(summary: dict, names_by_id: dict[str, str]) -> dict[str, dict[
 
 
 def extract_player_lines(summary: dict) -> list[PlayerLine]:
-	"""Flatten an ESPN game summary into catalog-complete PlayerLine rows."""  # noqa: DOC201
+	"""Flatten an ESPN game summary into catalog-complete PlayerLine rows."""
 	winning_abbrs = _winning_abbrs(summary)
 	team_blobs = (summary.get("boxscore") or {}).get("players", ())
 	entries = []
@@ -212,6 +210,8 @@ def extract_player_lines(summary: dict) -> list[PlayerLine]:
 			full_stats.setdefault(made_key, 0)
 			full_stats.setdefault(attempted_key, 0)
 
-		lines.append(PlayerLine(espn_id=espn_id, display_name=names_by_id[espn_id], team_abbr=team_abbr, stats=full_stats))
+		lines.append(
+			PlayerLine(espn_id=espn_id, display_name=names_by_id[espn_id], team_abbr=team_abbr, stats=full_stats)
+		)
 
 	return lines
