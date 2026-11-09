@@ -18,7 +18,8 @@ def parse_positions(pos_str: str) -> tuple[str, str | None]:
 
 def treat_name(name: str) -> str:
 	return (
-		name.removesuffix(" Jr")
+		name
+		.removesuffix(" Jr")
 		.removesuffix(" Jr.")
 		.replace("Cam", "Cameron")
 		.removesuffix(" II")
