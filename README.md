@@ -158,13 +158,13 @@ To add more detailed descriptions or examples, you can:
 1. **Add docstrings to view methods**:
 ```python
 def get(self, request, *args, **kwargs):
-    """
-    Retrieve a list of all teams with their statistics.
+	"""
+	Retrieve a list of all teams with their statistics.
 
-    This endpoint returns paginated results including team salary totals
-    and player counts.
-    """
-    return super().get(request, *args, **kwargs)
+	This endpoint returns paginated results including team salary totals
+	and player counts.
+	"""
+	return super().get(request, *args, **kwargs)
 ```
 
 2. **Use `@extend_schema` decorators** for complex customization:
@@ -181,10 +181,7 @@ def get(self, request, *args, **kwargs):
 3. **Add field help text** in models and serializers:
 ```python
 class Player(models.Model):
-    name = models.CharField(
-        max_length=100,
-        help_text="Player's full name"
-    )
+	name = models.CharField(max_length=100, help_text="Player's full name")
 ```
 
 The OpenAPI spec will be automatically updated when you modify your views, serializers, or models with proper documentation.

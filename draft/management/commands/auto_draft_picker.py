@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
 	help = "Automatically make picks for drafts where time has expired"
 
-	def add_arguments(self, parser) -> None:  # noqa: ANN001, D102, PLR6301
+	def add_arguments(self, parser) -> None:  # ruff: ignore[missing-type-function-argument, undocumented-public-method, no-self-use]
 		parser.add_argument(
 			"--verbose",
 			action="store_true",
@@ -24,7 +24,7 @@ class Command(BaseCommand):
 			default=True,
 		)
 
-	def handle(self, *_: Sequence[Any], **options: dict[str, Any]) -> None:  # noqa: D102
+	def handle(self, *_: Sequence[Any], **options: dict[str, Any]) -> None:  # ruff: ignore[undocumented-public-method]
 		verbose: bool = options["verbose"] or False  # pyright: ignore[reportAssignmentType]
 
 		if verbose:
@@ -58,8 +58,8 @@ class Command(BaseCommand):
 		elif total_picks_made > 0:
 			self.stdout.write(self.style.SUCCESS(f"Made {total_picks_made} auto picks"))
 
-	def process_draft(self, draft: "Draft", *, verbose: bool = False) -> int:  # noqa: C901
-		"""Process a single draft for auto picks."""  # noqa: DOC201
+	def process_draft(self, draft: "Draft", *, verbose: bool = False) -> int:  # ruff: ignore[complex-structure]
+		"""Process a single draft for auto picks."""  # ruff: ignore[docstring-missing-returns]
 		picks_made = 0
 
 		while True:
