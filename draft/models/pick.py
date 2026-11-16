@@ -50,7 +50,7 @@ class Pick(models.Model):
 		suffix = f" (via {self.original_team.name})" if self.current_team != self.original_team else ""
 		return f"{self.draft_year} Round {self.round_number} - {self.current_team.name}{suffix}"
 
-	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+	def save(self, *args, **kwargs) -> None:  # ruff: ignore[missing-type-args, missing-type-kwargs]
 		"""Overrides the save method to notify users if a pick conveyed."""
 		if self.protection_conveyed:
 			Notification.objects.create(

@@ -36,7 +36,7 @@ class TradeStatus(models.Model):
 	def __str__(self) -> str:
 		return f"Status ({self.status}) for trade {self.trade.id} by {self.actioned_by.name}"
 
-	def save(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+	def save(self, *args, **kwargs) -> None:  # ruff: ignore[missing-type-args, missing-type-kwargs]
 		"""
 		Check if users aren't using commissioner statuses and that commissioners aren't using user statuses.
 

@@ -42,7 +42,8 @@ class TradeActionView(APIView):
 				)
 
 				Trade.objects.get(pk=trade_id).make_counteroffer(
-					counteroffer=counteroffer, offer=offer,
+					counteroffer=counteroffer,
+					offer=offer,
 				)
 
 		else:
