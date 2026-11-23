@@ -309,7 +309,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 		model = Notification
 		fields = "__all__"
 		read_only_fields = ("id", "created_at", "updated_at")
-		extra_kwargs = {  # noqa: RUF012
+		extra_kwargs = {  # ruff: ignore[mutable-class-default]
 			"user": {"required": False, "allow_null": True},
 			"read": {"default": False},
 		}

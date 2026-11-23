@@ -40,10 +40,28 @@ class ExtractPlayerLinesTests(SimpleTestCase):
 	def test_champagnie_box_line_matches_espn(self) -> None:
 		stats = self.by_name["Julian Champagnie"].stats
 		expected = {
-			"MIN": 33, "PTS": 5, "FGM": 2, "FGA": 9, "TPM": 1, "TPA": 7,
-			"FTM": 0, "FTA": 0, "REB": 5, "AST": 3, "TO": 0, "STL": 4,
-			"BLK": 0, "OREB": 0, "DREB": 5, "PF": 1, "PLUS_MINUS": -4,
-			"FG_MISS": 7, "TP_MISS": 6, "FT_MISS": 0, "DD": 0, "TD": 0,
+			"MIN": 33,
+			"PTS": 5,
+			"FGM": 2,
+			"FGA": 9,
+			"TPM": 1,
+			"TPA": 7,
+			"FTM": 0,
+			"FTA": 0,
+			"REB": 5,
+			"AST": 3,
+			"TO": 0,
+			"STL": 4,
+			"BLK": 0,
+			"OREB": 0,
+			"DREB": 5,
+			"PF": 1,
+			"PLUS_MINUS": -4,
+			"FG_MISS": 7,
+			"TP_MISS": 6,
+			"FT_MISS": 0,
+			"DD": 0,
+			"TD": 0,
 		}
 		for key, value in expected.items():
 			self.assertEqual(stats[key], value, key)
